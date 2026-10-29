@@ -1,0 +1,1012 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0c10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PS1 Web">
+<meta name="description" content="Play your PlayStation 1 games in the browser — Mac, PC, iPad and phones. Controller support, touch controls, save states. No install, no uploads.">
+<title>PS1 Web</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314161d'/%3E%3Cpath d='M20 14l9 15H11z' fill='%233ec9a7'/%3E%3Ccircle cx='44' cy='22' r='8' fill='none' stroke='%23ff5f6d' stroke-width='4'/%3E%3Cpath d='M13 37l14 14M27 37L13 51' stroke='%236c8cff' stroke-width='4' stroke-linecap='round'/%3E%3Crect x='37' y='37' width='14' height='14' fill='none' stroke='%23e07bd8' stroke-width='4'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0b0c10;
+    --bg-2: #101218;
+    --panel: #15171f;
+    --panel-2: #1b1e28;
+    --line: #262a36;
+    --line-2: #333847;
+    --text: #eceef3;
+    --muted: #9095a4;
+    --dim: #646a7a;
+    --accent: #6c8cff;
+    --accent-2: #8aa3ff;
+    --tri: #3ec9a7; --cir: #ff5f6d; --squ: #e07bd8; --x: #6c8cff;
+    --gold: #ffc940;
+    --radius: 16px;
+    --shadow: 0 10px 30px -12px rgba(0,0,0,.6);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { min-height: 100vh; background:
+    radial-gradient(1200px 500px at 15% -10%, rgba(108,140,255,.14), transparent 60%),
+    radial-gradient(900px 400px at 100% 0%, rgba(224,123,216,.08), transparent 60%), var(--bg); background-attachment: fixed; }
+  a { color: var(--accent-2); }
+  button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+
+  /* ---------- barra superior ---------- */
+  .top { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; gap: 14px;
+    padding: 12px max(20px, env(safe-area-inset-right)) 12px max(20px, env(safe-area-inset-left));
+    padding-top: max(12px, env(safe-area-inset-top));
+    background: rgba(11,12,16,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line); }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 700; font-size: 17px; white-space: nowrap; }
+  .brand .mark { display: grid; grid-template-columns: repeat(2, 11px); gap: 2px; font-size: 11px; line-height: 11px; text-align: center; }
+  .brand .mark span:nth-child(1) { color: var(--tri); } .brand .mark span:nth-child(2) { color: var(--cir); }
+  .brand .mark span:nth-child(3) { color: var(--x); }   .brand .mark span:nth-child(4) { color: var(--squ); }
+  .nav { display: flex; gap: 4px; margin-left: 8px; }
+  .nav a { color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 99px; font-size: 14px; }
+  .nav a:hover { color: var(--text); background: var(--panel); }
+  .top .spacer { flex: 1; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; padding: 6px 12px; border-radius: 99px;
+    border: 1px solid var(--line); color: var(--muted); background: var(--panel); white-space: nowrap; }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dim); }
+  .chip.ok { color: var(--text); border-color: rgba(62,201,167,.35); }
+  .chip.ok .dot { background: var(--tri); box-shadow: 0 0 0 3px rgba(62,201,167,.2); }
+  .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--panel); cursor: pointer; color: var(--muted); flex: none; }
+  .icon-btn:hover { color: var(--text); background: var(--panel-2); }
+  .icon-btn svg { width: 19px; height: 19px; }
+
+  /* ---------- botones ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 12px;
+    border: 1px solid var(--line-2); background: var(--panel-2); color: var(--text); text-decoration: none; cursor: pointer;
+    font-weight: 600; font-size: 15px; white-space: nowrap; transition: background .15s, transform .1s, border-color .15s; }
+  .btn:hover { background: #232734; }
+  .btn:active { transform: scale(.98); }
+  .btn.primary { background: linear-gradient(180deg, #7b98ff, #5a7bff); border-color: transparent; color: #fff;
+    box-shadow: 0 6px 20px -6px rgba(108,140,255,.6); }
+  .btn.primary:hover { background: linear-gradient(180deg, #8aa3ff, #6c8cff); }
+  .btn.big { padding: 14px 24px; font-size: 16px; border-radius: 14px; }
+  .btn.ghost { background: transparent; }
+  .btn svg { width: 18px; height: 18px; }
+
+  /* ---------- estructura ---------- */
+  main { max-width: 1120px; margin: 0 auto; padding: 28px max(20px, env(safe-area-inset-left)) 60px; }
+  section.block { margin-top: 44px; scroll-margin-top: 80px; }
+  .sec-head { display: flex; align-items: end; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+  .sec-head h2 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+  .sec-head p { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+  .sec-head .grow { flex: 1; min-width: 200px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+
+  /* ---------- portada (biblioteca vacía) ---------- */
+  .hero { text-align: center; padding: 36px 0 8px; }
+  .hero h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 0 0 12px; letter-spacing: -.02em; }
+  .hero h1 .grad { background: linear-gradient(90deg, var(--tri), var(--x) 40%, var(--squ) 70%, var(--cir));
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.lead { color: var(--muted); font-size: 17px; max-width: 560px; margin: 0 auto 26px; }
+  .drop { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 34px 20px; border: 2px dashed var(--line-2);
+    border-radius: 20px; background: rgba(21,23,31,.6); cursor: pointer; transition: border-color .15s, background .15s; max-width: 620px; margin: 0 auto; }
+  .drop:hover, .drop.over { border-color: var(--accent); background: rgba(108,140,255,.07); }
+  .drop .disc { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+    background: conic-gradient(from 0deg, #3ec9a7, #6c8cff, #e07bd8, #ff5f6d, #3ec9a7); box-shadow: 0 8px 26px -8px rgba(108,140,255,.7); }
+  .drop .disc::after { content: ""; width: 18px; height: 18px; border-radius: 50%; background: var(--bg); box-shadow: 0 0 0 5px rgba(255,255,255,.25); }
+  .drop strong { font-size: 17px; }
+  .drop small { color: var(--muted); }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 30px; text-align: left; }
+  .step { padding: 18px; display: flex; gap: 14px; align-items: flex-start; }
+  .step .n { width: 30px; height: 30px; flex: none; border-radius: 10px; display: grid; place-items: center; font-weight: 700;
+    background: var(--panel-2); border: 1px solid var(--line-2); color: var(--accent-2); }
+  .step h3 { margin: 0 0 2px; font-size: 15px; }
+  .step p { margin: 0; color: var(--muted); font-size: 13.5px; }
+
+  /* ---------- continuar jugando ---------- */
+  .continue { display: flex; align-items: center; gap: 22px; padding: 18px; overflow: hidden; position: relative; }
+  .continue .cover { width: 120px; flex: none; }
+  .continue .info { flex: 1; min-width: 0; }
+  .continue .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--accent-2); font-weight: 700; }
+  .continue h2 { margin: 2px 0 4px; font-size: 24px; line-height: 1.2; }
+  .continue .meta { color: var(--muted); font-size: 13.5px; margin-bottom: 14px; }
+
+  /* ---------- portadas de juego ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 18px; }
+  .game { position: relative; display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: inherit; cursor: pointer; }
+  .cover { position: relative; aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);
+    transition: transform .18s, box-shadow .18s; }
+  .cover .art { position: absolute; inset: 0; display: grid; place-items: center; }
+  .cover .art b { font-size: 40px; font-weight: 800; letter-spacing: .02em; color: rgba(255,255,255,.92); text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+  .cover .spine { position: absolute; left: 0; top: 0; bottom: 0; width: 14%; background: rgba(0,0,0,.55);
+    display: flex; align-items: center; justify-content: center; }
+  .cover .spine span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 10px; font-weight: 800; letter-spacing: .2em; color: rgba(255,255,255,.75); }
+  .cover .shine { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.18), transparent 40%); }
+  .cover .playover { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0,0,0,.35); opacity: 0; transition: opacity .15s; }
+  .cover .playover i { width: 54px; height: 54px; border-radius: 50%; background: rgba(255,255,255,.95); display: grid; place-items: center; }
+  .cover .playover i::after { content: ""; border-left: 16px solid #111; border-top: 10px solid transparent; border-bottom: 10px solid transparent; margin-left: 4px; }
+  .game:hover .cover, .game:focus-visible .cover { transform: translateY(-4px); box-shadow: 0 18px 34px -14px rgba(0,0,0,.8); }
+  .game:hover .playover, .game:focus-visible .playover { opacity: 1; }
+  .game h3 { margin: 0; font-size: 14.5px; line-height: 1.3; font-weight: 600; }
+  .game .meta { color: var(--dim); font-size: 12.5px; margin-top: -6px; }
+  .game .more { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 10px; border: none;
+    background: rgba(0,0,0,.55); color: #fff; cursor: pointer; display: grid; place-items: center; opacity: 0; transition: opacity .15s; }
+  .game:hover .more, .game .more:focus-visible { opacity: 1; }
+  @media (hover: none) { .game .more { opacity: 1; } }
+  .game .more:hover { background: var(--cir); }
+  .add-tile { border: 2px dashed var(--line-2); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 8px; color: var(--muted); cursor: pointer; background: transparent; transition: border-color .15s, color .15s, background .15s; }
+  .add-tile:hover { border-color: var(--accent); color: var(--text); background: rgba(108,140,255,.06); }
+  .add-tile .plus { font-size: 34px; line-height: 1; }
+  .busy { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; margin-top: 14px; }
+  .spin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line-2); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- mando ---------- */
+  .pad-wrap { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; }
+  .pad-stage { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+  .pad-stage .status { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pad-stage .hint { color: var(--muted); font-size: 13.5px; margin: 0; }
+  svg.pad { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; }
+  svg.pad .body { fill: #1e212c; stroke: var(--line-2); stroke-width: 2; }
+  svg.pad .b { fill: #2a2e3b; stroke: #3a3f50; stroke-width: 1.5; transition: fill .08s; }
+  svg.pad .on .b, svg.pad .b.on { fill: var(--accent); stroke: var(--accent-2); }
+  svg.pad text { font: 700 12px -apple-system, sans-serif; fill: var(--muted); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+  svg.pad .sym { font-size: 15px; }
+  svg.pad .tag { font-size: 10px; font-weight: 600; fill: var(--dim); }
+  svg.pad .stick-dot { fill: #3a3f50; transition: none; }
+  svg.pad .on .stick-dot { fill: #fff; }
+  .map { padding: 6px 0; }
+  .map-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 9px 18px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .map-row:last-child { border-bottom: none; }
+  .map-row .ps { display: flex; align-items: center; gap: 8px; }
+  .map-row .ps b { width: 18px; text-align: center; }
+  .map-row .arrow { color: var(--dim); }
+  .key { display: inline-block; min-width: 26px; padding: 2px 8px; border-radius: 7px; background: var(--panel-2); border: 1px solid var(--line-2);
+    border-bottom-width: 3px; font-size: 12.5px; font-weight: 600; text-align: center; color: var(--text); }
+  .map-row .xb { justify-self: end; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .tabs { display: inline-flex; padding: 4px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); gap: 2px; }
+  .tabs button { border: none; background: none; padding: 7px 14px; border-radius: 9px; cursor: pointer; color: var(--muted); font-weight: 600; font-size: 14px; }
+  .tabs button.on { background: var(--panel-2); color: var(--text); box-shadow: 0 1px 0 rgba(255,255,255,.04) inset; }
+  .tri { color: var(--tri); } .cir { color: var(--cir); } .x { color: var(--x); } .squ { color: var(--squ); }
+  .pair { margin-top: auto; display: grid; gap: 8px; padding-top: 6px; border-top: 1px solid var(--line); }
+  .pair .step { padding: 10px 0 0; }
+
+  /* ---------- ayuda ---------- */
+  .faq details { border-bottom: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: none; }
+  .faq summary { cursor: pointer; padding: 16px 20px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 12px; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; margin-left: auto; color: var(--muted); font-size: 20px; line-height: 1; transition: transform .15s; }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq .ans { padding: 0 20px 18px; color: var(--muted); font-size: 14.5px; }
+  .faq .ans code { color: var(--text); background: var(--panel-2); padding: 1px 6px; border-radius: 5px; font-size: 13px; }
+
+  /* ---------- calificación ---------- */
+  .rate-card { margin-top: 44px; padding: 28px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px;
+    background: linear-gradient(180deg, rgba(108,140,255,.08), transparent), var(--panel); }
+  .rate-card h2 { margin: 0; font-size: 20px; }
+  .rate-card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .stars { display: flex; gap: 4px; }
+  .stars button { background: none; border: none; font-size: 34px; cursor: pointer; color: var(--line-2); padding: 0 2px; line-height: 1; transition: color .1s, transform .1s; }
+  .stars button.on { color: var(--gold); }
+  .stars button:hover { transform: scale(1.15); }
+  .rate-card .links { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .legal { color: var(--dim); font-size: 12.5px; text-align: center; margin-top: 26px; }
+
+  /* ---------- ajustes ---------- */
+  dialog { border: 1px solid var(--line-2); border-radius: 20px; background: var(--panel); color: var(--text); padding: 0; width: min(460px, calc(100% - 32px)); box-shadow: 0 30px 80px -20px rgba(0,0,0,.8); }
+  dialog::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
+  .dlg-head { display: flex; align-items: center; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+  .dlg-head h2 { margin: 0; font-size: 18px; flex: 1; }
+  .setting { display: flex; align-items: center; gap: 14px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .setting:last-of-type { border-bottom: none; }
+  .setting .lbl { flex: 1; }
+  .setting .lbl b { display: block; font-size: 15px; font-weight: 600; }
+  .setting .lbl small { color: var(--muted); font-size: 13px; }
+  .seg { display: inline-flex; padding: 3px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; }
+  .seg button { border: none; background: none; padding: 6px 11px; border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+  .seg button.on { background: var(--panel-2); color: var(--text); }
+  .switch { position: relative; width: 46px; height: 28px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch span { position: absolute; inset: 0; border-radius: 99px; background: var(--line-2); transition: background .15s; cursor: pointer; }
+  .switch span::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: transform .15s; }
+  .switch input:checked + span { background: var(--accent); }
+  .switch input:checked + span::after { transform: translateX(18px); }
+  .switch input:focus-visible + span { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+  .dlg-foot { padding: 14px 20px 18px; display: flex; gap: 10px; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); }
+  .dlg-foot small { color: var(--dim); font-size: 12px; }
+
+  /* ---------- reproductor ---------- */
+  #player { position: fixed; inset: 0; z-index: 100; background: #000; display: none; flex-direction: column; }
+  body.playing #player { display: flex; }
+  body.playing #home, body.playing .top { display: none; }
+  .pbar { display: flex; align-items: center; gap: 10px; padding: 10px max(14px, env(safe-area-inset-right)) 10px max(14px, env(safe-area-inset-left));
+    padding-top: max(10px, env(safe-area-inset-top)); background: #0b0c10; border-bottom: 1px solid var(--line); }
+  .pbar h1 { font-size: 15px; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #game { flex: 1; min-height: 0; }
+
+  /* ---------- avisos ---------- */
+  #toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0;
+    background: var(--panel-2); border: 1px solid var(--line-2); color: var(--text); padding: 11px 18px; border-radius: 12px;
+    transition: opacity .2s, transform .2s; pointer-events: none; z-index: 1000; box-shadow: var(--shadow); font-weight: 600; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #dropOverlay { position: fixed; inset: 0; z-index: 900; display: none; place-items: center; background: rgba(11,12,16,.85); backdrop-filter: blur(6px); }
+  #dropOverlay.show { display: grid; }
+  #dropOverlay div { border: 3px dashed var(--accent); border-radius: 28px; padding: 50px 70px; font-size: 22px; font-weight: 700; text-align: center; }
+  .banner { display: flex; align-items: center; gap: 14px; padding: 14px 18px; margin-top: 22px; }
+  .banner p { margin: 0; flex: 1; font-size: 14px; color: var(--muted); }
+  .banner p b { color: var(--text); }
+
+  input[type=file] { display: none; }
+
+  @media (max-width: 860px) {
+    .pad-wrap { grid-template-columns: 1fr; }
+    .nav { display: none; }
+  }
+  @media (max-width: 640px) {
+    .steps { grid-template-columns: 1fr; }
+    .continue { flex-direction: column; align-items: stretch; text-align: center; }
+    .continue .cover { width: 140px; margin: 0 auto; }
+    .grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .chip .txt { display: none; }
+    main { padding-top: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="./"><span class="mark" aria-hidden="true"><span>▲</span><span>●</span><span>✕</span><span>■</span></span>PS1 Web</a>
+  <nav class="nav">
+    <a href="#library" data-t="navLibrary">Biblioteca</a>
+    <a href="#controls" data-t="navControls">Controles</a>
+    <a href="#help" data-t="navHelp">Ayuda</a>
+  </nav>
+  <div class="spacer"></div>
+  <span class="chip padchip" title=""><span class="dot"></span><span class="txt"></span></span>
+  <button class="icon-btn" id="openSettings" data-t-title="settings" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</header>
+
+<main id="home">
+  <!-- Portada: solo cuando no hay juegos -->
+  <section class="hero" id="hero" hidden>
+    <h1 data-t-html="heroTitle">Tus juegos de PS1,<br><span class="grad">directo en el navegador</span></h1>
+    <p class="lead" data-t="heroLead">Sin instalar nada. Tus juegos no se suben a ningún sitio: se quedan en este dispositivo.</p>
+    <label class="drop" for="pick" id="dropHero">
+      <span class="disc" aria-hidden="true"></span>
+      <strong data-t="dropTitle">Agrega tu primer juego</strong>
+      <small data-t="dropSub">Toca aquí o arrastra el archivo · .chd · .bin · .cue · .pbp · .iso · .zip · .7z</small>
+    </label>
+    <div class="steps">
+      <div class="card step"><span class="n">1</span><div><h3 data-t="step1">Agrega un juego</h3><p data-t="step1p">Elige el archivo una vez; queda guardado para la próxima.</p></div></div>
+      <div class="card step"><span class="n">2</span><div><h3 data-t="step2">Conecta tu mando</h3><p data-t="step2p">Xbox o PlayStation por Bluetooth. O usa teclado / pantalla táctil.</p></div></div>
+      <div class="card step"><span class="n">3</span><div><h3 data-t="step3">Juega y guarda</h3><p data-t="step3p">Tus partidas se guardan solas en este dispositivo.</p></div></div>
+    </div>
+  </section>
+
+  <!-- Aviso para instalar en iPad / iPhone -->
+  <div class="card banner" id="iosBanner" hidden>
+    <span style="font-size:24px">📲</span>
+    <p data-t-html="iosTip"><b>Consejo:</b> toca <b>Compartir → Agregar a pantalla de inicio</b> para usarlo como app a pantalla completa y que Safari no borre tus juegos.</p>
+    <button class="icon-btn" id="closeIos" aria-label="Cerrar">✕</button>
+  </div>
+
+  <!-- Continuar jugando -->
+  <section class="block" id="continueSec" hidden style="margin-top:28px">
+    <div class="card continue" id="continueCard"></div>
+  </section>
+
+  <!-- Biblioteca -->
+  <section class="block" id="library" hidden>
+    <div class="sec-head">
+      <div class="grow"><h2 data-t="libTitle">Tu biblioteca</h2><p data-t="libSub">Guardados en este dispositivo</p></div>
+      <label class="btn primary" for="pick"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-t="addGame">Agregar juego</span></label>
+    </div>
+    <div class="grid" id="localGrid"></div>
+  </section>
+  <div class="busy" id="busy" hidden><span class="spin"></span><span id="busyText"></span></div>
+  <input type="file" id="pick" multiple>
+
+  <!-- Biblioteca del ordenador (server.py) -->
+  <section class="block" id="serverSec" hidden>
+    <div class="sec-head">
+      <div class="grow"><h2 data-t="srvTitle">En tu ordenador</h2><p id="srvSub"></p></div>
+      <span class="chip" id="biosChip"><span class="dot"></span><span></span></span>
+    </div>
+    <div class="grid" id="srvGrid"></div>
+  </section>
+
+  <!-- Controles -->
+  <section class="block" id="controls">
+    <div class="sec-head">
+      <div class="grow"><h2 data-t="ctlTitle">Controles</h2><p data-t="ctlSub">Los botones van por posición, como en un mando de PlayStation.</p></div>
+      <div class="tabs" role="tablist">
+        <button class="on" data-tab="pad" data-t="tabPad">Mando</button>
+        <button data-tab="kbd" data-t="tabKbd">Teclado</button>
+      </div>
+    </div>
+    <div class="pad-wrap">
+      <div class="card pad-stage">
+        <div class="status"><span class="chip padchip"><span class="dot"></span><span class="txt"></span></span></div>
+        <svg class="pad" id="padSvg" viewBox="0 0 400 250" aria-label="Mando">
+          <path class="body" d="M92 52 Q200 34 308 52 Q352 58 372 122 Q392 196 356 226 Q326 246 296 212 L272 186 L128 186 L104 212 Q74 246 44 226 Q8 196 28 122 Q48 58 92 52Z"/>
+          <g data-btn="6"><rect class="b" x="66" y="8" width="64" height="20" rx="8"/><text x="98" y="18" class="tag" style="fill:var(--muted)">LT · L2</text></g>
+          <g data-btn="7"><rect class="b" x="270" y="8" width="64" height="20" rx="8"/><text x="302" y="18" class="tag" style="fill:var(--muted)">RT · R2</text></g>
+          <g data-btn="4"><rect class="b" x="62" y="32" width="80" height="16" rx="8"/><text x="102" y="40" class="tag" style="fill:var(--muted)">LB · L1</text></g>
+          <g data-btn="5"><rect class="b" x="258" y="32" width="80" height="16" rx="8"/><text x="298" y="40" class="tag" style="fill:var(--muted)">RB · R1</text></g>
+          <g data-btn="10" data-stick="0"><circle class="b" cx="104" cy="98" r="24"/><circle class="stick-dot" cx="104" cy="98" r="11"/></g>
+          <g data-btn="11" data-stick="2"><circle class="b" cx="250" cy="150" r="24"/><circle class="stick-dot" cx="250" cy="150" r="11"/></g>
+          <g data-btn="12"><rect class="b" x="140" y="124" width="20" height="22" rx="4"/></g>
+          <g data-btn="13"><rect class="b" x="140" y="166" width="20" height="22" rx="4"/></g>
+          <g data-btn="14"><rect class="b" x="118" y="146" width="22" height="20" rx="4"/></g>
+          <g data-btn="15"><rect class="b" x="160" y="146" width="22" height="20" rx="4"/></g>
+          <rect x="140" y="146" width="20" height="20" fill="#2a2e3b"/>
+          <g data-btn="8"><circle class="b" cx="172" cy="96" r="9"/><text x="172" y="96" style="font-size:9px">⧉</text></g>
+          <g data-btn="9"><circle class="b" cx="228" cy="96" r="9"/><text x="228" y="96" style="font-size:10px">≡</text></g>
+          <text x="172" y="116" class="tag">SELECT</text><text x="228" y="116" class="tag">START</text>
+          <circle cx="200" cy="66" r="12" fill="#2a2e3b" stroke="#3a3f50"/><text x="200" y="66" class="tag" style="font-size:8px">XBOX</text>
+          <g data-btn="3"><circle class="b" cx="298" cy="74" r="15"/><text x="298" y="74" class="sym tri" style="fill:var(--tri)">▲</text><text x="320" y="62" class="tag">Y</text></g>
+          <g data-btn="1"><circle class="b" cx="326" cy="100" r="15"/><text x="326" y="100" class="sym" style="fill:var(--cir)">●</text><text x="350" y="86" class="tag">B</text></g>
+          <g data-btn="0"><circle class="b" cx="298" cy="126" r="15"/><text x="298" y="126" class="sym" style="fill:var(--x)">✕</text><text x="320" y="140" class="tag">A</text></g>
+          <g data-btn="2"><circle class="b" cx="270" cy="100" r="15"/><text x="270" y="100" class="sym" style="fill:var(--squ)">■</text><text x="248" y="86" class="tag">X</text></g>
+        </svg>
+        <p class="hint" data-t="padHint">Pulsa botones de tu mando: se iluminan aquí. Así compruebas que funciona antes de jugar.</p>
+        <div class="pair">
+      <div class="step"><span class="n">1</span><div><h3 data-t="pair1">Modo emparejar</h3><p data-t="pair1p">Enciende el mando y mantén el botón de emparejar hasta que el logo parpadee rápido.</p></div></div>
+      <div class="step"><span class="n">2</span><div><h3 data-t="pair2">Bluetooth</h3><p data-t="pair2p">Conéctalo en Ajustes → Bluetooth del Mac, PC, iPad o móvil.</p></div></div>
+      <div class="step"><span class="n">3</span><div><h3 data-t="pair3">Pulsa un botón</h3><p data-t="pair3p">Con esta página abierta. Arriba verás 🟢 Mando conectado.</p></div></div>
+        </div>
+      </div>
+      <div class="card map" id="mapPad"></div>
+      <div class="card map" id="mapKbd" hidden></div>
+    </div>
+  </section>
+
+  <!-- Ayuda -->
+  <section class="block" id="help">
+    <div class="sec-head"><div class="grow"><h2 data-t="helpTitle">Ayuda</h2></div></div>
+    <div class="card faq" id="faq"></div>
+  </section>
+
+  <!-- Calificación (solo en GitHub Pages) -->
+  <section class="card rate-card" id="social" hidden>
+    <h2 data-t="rateTitle">¿Qué te pareció?</h2>
+    <p data-t="rateSub">Tu opinión me ayuda a mejorarlo.</p>
+    <div class="stars" id="stars" role="group"></div>
+    <div class="links">
+      <a class="btn primary" id="starLink" target="_blank" rel="noopener">⭐ <span data-t="starBtn">Dale una estrella en GitHub</span></a>
+      <a class="btn" id="feedbackLink" target="_blank" rel="noopener">💬 <span data-t="feedbackBtn">Sugerencias o errores</span></a>
+    </div>
+  </section>
+  <p class="legal" data-t="legal">PS1 Web no incluye juegos ni BIOS. Usa solo copias de juegos que tengas. PlayStation es una marca de Sony Interactive Entertainment; este proyecto no está afiliado a Sony.</p>
+</main>
+
+<section id="player">
+  <div class="pbar">
+    <a class="btn ghost" href="./" style="padding:8px 12px">← <span data-t="back">Biblioteca</span></a>
+    <h1 id="ptitle"></h1>
+    <span class="chip padchip"><span class="dot"></span><span class="txt"></span></span>
+    <button class="icon-btn" id="fsBtn" data-t-title="fullscreen" aria-label="Pantalla completa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+    </button>
+  </div>
+  <div id="game"></div>
+</section>
+
+<dialog id="settings">
+  <div class="dlg-head"><h2 data-t="settings">Ajustes</h2><button class="icon-btn" id="closeSettings" aria-label="Cerrar">✕</button></div>
+  <div class="setting">
+    <div class="lbl"><b data-t="setLang">Idioma</b><small data-t="setLangSub">De la página y del emulador</small></div>
+    <div class="seg" data-setting="lang"><button data-v="auto">Auto</button><button data-v="es">ES</button><button data-v="en">EN</button></div>
+  </div>
+  <div class="setting">
+    <div class="lbl"><b data-t="setTouch">Botones táctiles</b><small data-t="setTouchSub">En iPad y móvil</small></div>
+    <div class="seg" data-setting="touch"><button data-v="auto" data-t="touchAuto">Auto</button><button data-v="always" data-t="touchOn">Siempre</button><button data-v="never" data-t="touchOff">Nunca</button></div>
+  </div>
+  <div class="setting">
+    <div class="lbl"><b data-t="setFs">Pantalla completa al jugar</b><small data-t="setFsSub">Al abrir un juego</small></div>
+    <label class="switch"><input type="checkbox" data-setting="fullscreen"><span></span></label>
+  </div>
+  <div class="setting">
+    <div class="lbl"><b data-t="setFilter">Imagen</b><small data-t="setFilterSub">Cómo se ven los gráficos</small></div>
+    <div class="seg" data-setting="filter"><button data-v="sharp" data-t="fSharp">Nítida</button><button data-v="smooth" data-t="fSmooth">Suave</button><button data-v="crt" data-t="fCrt">TV antigua</button></div>
+  </div>
+  <div class="dlg-foot"><small data-t="setNote">Se guardan en este dispositivo.</small><button class="btn primary" id="doneSettings" data-t="done">Listo</button></div>
+</dialog>
+
+<div id="dropOverlay"><div data-t="dropHere">Suelta el juego aquí</div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const $ = id => document.getElementById(id);
+const $$ = sel => [...document.querySelectorAll(sel)];
+
+// ================= Ajustes =================
+const SETTINGS_KEY = "ps1web-settings";
+const settings = Object.assign({ lang: "auto", touch: "auto", fullscreen: false, filter: "smooth" }, readJSON(SETTINGS_KEY));
+function readJSON(k) { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } }
+function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+// ================= Idioma =================
+const I18N = {
+  es: {
+    navLibrary: "Biblioteca", navControls: "Controles", navHelp: "Ayuda", settings: "Ajustes", fullscreen: "Pantalla completa",
+    heroTitle: 'Tus juegos de PS1,<br><span class="grad">directo en el navegador</span>',
+    heroLead: "Sin instalar nada. Tus juegos no se suben a ningún sitio: se quedan en este dispositivo.",
+    dropTitle: "Agrega tu primer juego", dropSub: "Toca aquí o arrastra el archivo · .chd · .bin · .cue · .pbp · .iso · .zip · .7z",
+    step1: "Agrega un juego", step1p: "Elige el archivo una vez; queda guardado para la próxima.",
+    step2: "Conecta tu mando", step2p: "Xbox o PlayStation por Bluetooth. O usa teclado / pantalla táctil.",
+    step3: "Juega y guarda", step3p: "Tus partidas se guardan solas en este dispositivo.",
+    iosTip: "<b>Consejo:</b> toca <b>Compartir → Agregar a pantalla de inicio</b> para usarlo como app a pantalla completa y que Safari no borre tus juegos.",
+    continueEyebrow: "Continuar jugando", lastPlayed: "Jugado {t}", neverPlayed: "Aún sin jugar", play: "Jugar",
+    libTitle: "Tu biblioteca", libSub: "Guardados en este dispositivo", addGame: "Agregar juego", addTile: "Agregar juego",
+    srvTitle: "En tu ordenador", srvSub: "Carpeta: {p}", biosOk: "BIOS: {b}", biosNo: "BIOS de reemplazo",
+    ctlTitle: "Controles", ctlSub: "Los botones van por posición, como en un mando de PlayStation.", tabPad: "Mando", tabKbd: "Teclado",
+    padHint: "Pulsa botones de tu mando: se iluminan aquí. Así compruebas que funciona antes de jugar.",
+    pair1: "Modo emparejar", pair1p: "Enciende el mando y mantén el botón de emparejar hasta que el logo parpadee rápido.",
+    pair2: "Bluetooth", pair2p: "Conéctalo en Ajustes → Bluetooth del Mac, PC, iPad o móvil.",
+    pair3: "Pulsa un botón", pair3p: "Con esta página abierta. Arriba verás 🟢 Mando conectado.",
+    padNone: "Sin mando", padXbox: "Mando Xbox conectado", padPs: "Mando PlayStation conectado", padGeneric: "Mando conectado",
+    padNoneTip: "Conéctalo por Bluetooth y pulsa cualquier botón", padOff: "Mando desconectado",
+    rTri: "Triángulo", rCir: "Círculo", rX: "Equis", rSqu: "Cuadrado", rDpad: "Cruceta", rStick: "Stick izquierdo",
+    rL1: "L1 / R1", rL2: "L2 / R2", rStart: "Start", rSelect: "Select", rAnalog: "Modo analógico",
+    rSave: "Guardar / cargar rápido", rFF: "Avance rápido", rMenu: "Menú del emulador", arrows: "Flechas", emuMenu: "Toca la pantalla",
+    helpTitle: "Ayuda",
+    faq: [
+      ["¿Qué archivos sirven?", "Recomendado <code>.chd</code> (un solo archivo, ocupa menos). También <code>.bin</code> solo, <code>.cue</code> + <code>.bin</code> (elígelos juntos), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> y <code>.7z</code>."],
+      ["¿Dónde se guardan mis juegos y partidas?", "En el navegador de cada dispositivo. Nada se sube a internet. Si borras los datos del sitio, se borran también. En iPad / iPhone, agrégalo a la pantalla de inicio para protegerlos."],
+      ["¿Cómo guardo la partida?", "Con la memory card del propio juego, como en la consola. También con guardado rápido: en el menú del emulador (toca la pantalla o mueve el ratón abajo) o con las teclas <code>1</code> y <code>2</code>."],
+      ["En el iPad se cierra al cargar el juego", "Los iPad antiguos tienen poca memoria. Convierte el juego a <code>.chd</code> (ocupa la mitad) con <code>chdman createcd -i juego.cue -o juego.chd</code>."],
+      ["No detecta mi mando", "Pulsa cualquier botón con la página abierta: los navegadores no muestran el mando hasta entonces. Un mando Xbox solo recuerda un dispositivo Bluetooth; vuelve a emparejarlo al cambiar de aparato."],
+      ["¿Necesito la BIOS?", "No. Trae una BIOS de reemplazo. Con la BIOS original de tu consola algunos juegos funcionan mejor (solo en modo ordenador con <code>server.py</code>)."],
+    ],
+    rateTitle: "¿Qué te pareció?", rateSub: "Tu opinión me ayuda a mejorarlo.", starBtn: "Dale una estrella en GitHub", feedbackBtn: "Sugerencias o errores",
+    rateIssueTitle: "Calificación: {s} ({n}/5)", rateIssueBody: "Mi calificación: {n}/5\n\nLo que más me gustó:\n\nLo que mejoraría:\n\nDispositivo / navegador: {ua}",
+    feedbackTitle: "Sugerencia: ",
+    legal: "PS1 Web no incluye juegos ni BIOS. Usa solo copias de juegos que tengas. PlayStation es una marca de Sony Interactive Entertainment; este proyecto no está afiliado a Sony.",
+    back: "Biblioteca",
+    setLang: "Idioma", setLangSub: "De la página y del emulador", setTouch: "Botones táctiles", setTouchSub: "En iPad y móvil",
+    touchAuto: "Auto", touchOn: "Siempre", touchOff: "Nunca", setFs: "Pantalla completa al jugar", setFsSub: "Al abrir un juego",
+    setFilter: "Imagen", setFilterSub: "Cómo se ven los gráficos", fSharp: "Nítida", fSmooth: "Suave", fCrt: "TV antigua", setNote: "Se guardan en este dispositivo.", done: "Listo",
+    dropHere: "Suelta el juego aquí", notGame: "Eso no parece un juego de PS1.", cueAlone: "Elige el .cue junto con su .bin (o solo el .bin).",
+    saving: "Guardando “{t}” en este dispositivo…", noStore: "No se pudo guardar; se abrirá solo esta vez.",
+    removeQ: "¿Quitar “{t}” de este dispositivo? Las partidas guardadas se conservan.", removed: "Juego quitado", remove: "Quitar",
+    justNow: "hace un momento", minAgo: "hace {n} min", hAgo: "hace {n} h", dAgo: "hace {n} días",
+  },
+  en: {
+    navLibrary: "Library", navControls: "Controls", navHelp: "Help", settings: "Settings", fullscreen: "Fullscreen",
+    heroTitle: 'Your PS1 games,<br><span class="grad">right in your browser</span>',
+    heroLead: "Nothing to install. Your games are never uploaded — they stay on this device.",
+    dropTitle: "Add your first game", dropSub: "Tap here or drop a file · .chd · .bin · .cue · .pbp · .iso · .zip · .7z",
+    step1: "Add a game", step1p: "Pick the file once; it's saved for next time.",
+    step2: "Connect a controller", step2p: "Xbox or PlayStation via Bluetooth. Or use keyboard / touch.",
+    step3: "Play and save", step3p: "Your progress is saved on this device automatically.",
+    iosTip: "<b>Tip:</b> tap <b>Share → Add to Home Screen</b> to use it as a full-screen app and keep Safari from clearing your games.",
+    continueEyebrow: "Continue playing", lastPlayed: "Played {t}", neverPlayed: "Not played yet", play: "Play",
+    libTitle: "Your library", libSub: "Saved on this device", addGame: "Add game", addTile: "Add game",
+    srvTitle: "On your computer", srvSub: "Folder: {p}", biosOk: "BIOS: {b}", biosNo: "Replacement BIOS",
+    ctlTitle: "Controls", ctlSub: "Buttons are mapped by position, just like a PlayStation pad.", tabPad: "Controller", tabKbd: "Keyboard",
+    padHint: "Press buttons on your controller — they light up here, so you know it works before playing.",
+    pair1: "Pairing mode", pair1p: "Turn the controller on and hold the pair button until the logo flashes fast.",
+    pair2: "Bluetooth", pair2p: "Connect it in Settings → Bluetooth on your Mac, PC, iPad or phone.",
+    pair3: "Press a button", pair3p: "With this page open. You'll see 🟢 Controller connected at the top.",
+    padNone: "No controller", padXbox: "Xbox controller connected", padPs: "PlayStation controller connected", padGeneric: "Controller connected",
+    padNoneTip: "Pair it via Bluetooth and press any button", padOff: "Controller disconnected",
+    rTri: "Triangle", rCir: "Circle", rX: "Cross", rSqu: "Square", rDpad: "D-pad", rStick: "Left stick",
+    rL1: "L1 / R1", rL2: "L2 / R2", rStart: "Start", rSelect: "Select", rAnalog: "Analog mode",
+    rSave: "Quick save / load", rFF: "Fast forward", rMenu: "Emulator menu", arrows: "Arrows", emuMenu: "Tap the screen",
+    helpTitle: "Help",
+    faq: [
+      ["Which files work?", "Best is <code>.chd</code> (single file, smaller). Also a lone <code>.bin</code>, <code>.cue</code> + <code>.bin</code> (pick them together), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> and <code>.7z</code>."],
+      ["Where are my games and saves stored?", "In the browser on each device. Nothing is uploaded. Clearing this site's data deletes them. On iPad / iPhone, add it to your Home Screen to protect them."],
+      ["How do I save?", "With the game's own memory card, like on the console. Or use quick saves from the emulator menu (tap the screen or move the mouse to the bottom) or the <code>1</code> and <code>2</code> keys."],
+      ["My iPad closes the page when loading a game", "Older iPads have little memory. Convert the game to <code>.chd</code> (about half the size) with <code>chdman createcd -i game.cue -o game.chd</code>."],
+      ["My controller isn't detected", "Press any button with the page open — browsers hide controllers until then. An Xbox controller remembers only one Bluetooth device; re-pair it when switching."],
+      ["Do I need a BIOS?", "No, a replacement BIOS is built in. Your console's original BIOS improves compatibility (computer mode with <code>server.py</code> only)."],
+    ],
+    rateTitle: "What did you think?", rateSub: "Your feedback helps me improve it.", starBtn: "Star it on GitHub", feedbackBtn: "Ideas or bugs",
+    rateIssueTitle: "Rating: {s} ({n}/5)", rateIssueBody: "My rating: {n}/5\n\nWhat I liked most:\n\nWhat I'd improve:\n\nDevice / browser: {ua}",
+    feedbackTitle: "Idea: ",
+    legal: "PS1 Web does not include games or BIOS files. Only play games you own. PlayStation is a trademark of Sony Interactive Entertainment; this project is not affiliated with Sony.",
+    back: "Library",
+    setLang: "Language", setLangSub: "For the page and the emulator", setTouch: "Touch buttons", setTouchSub: "On iPad and phones",
+    touchAuto: "Auto", touchOn: "Always", touchOff: "Never", setFs: "Fullscreen when playing", setFsSub: "When a game opens",
+    setFilter: "Image", setFilterSub: "How the graphics look", fSharp: "Sharp", fSmooth: "Smooth", fCrt: "Retro TV", setNote: "Saved on this device.", done: "Done",
+    dropHere: "Drop the game here", notGame: "That doesn't look like a PS1 game.", cueAlone: "Pick the .cue together with its .bin (or just the .bin).",
+    saving: "Saving “{t}” on this device…", noStore: "Couldn't save it; it will open just this once.",
+    removeQ: "Remove “{t}” from this device? Your saves are kept.", removed: "Game removed", remove: "Remove",
+    justNow: "just now", minAgo: "{n} min ago", hAgo: "{n} h ago", dAgo: "{n} days ago",
+  },
+};
+const LANG = settings.lang !== "auto" ? settings.lang : ((navigator.language || "en").toLowerCase().startsWith("es") ? "es" : "en");
+function t(k, vars) {
+  let s = (I18N[LANG] && I18N[LANG][k]) ?? I18N.es[k] ?? k;
+  if (vars && typeof s === "string") for (const v in vars) s = s.replaceAll("{" + v + "}", vars[v]);
+  return s;
+}
+function applyI18n() {
+  document.documentElement.lang = LANG;
+  $$("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  $$("[data-t-html]").forEach(el => el.innerHTML = t(el.dataset.tHtml));
+  $$("[data-t-title]").forEach(el => { el.title = t(el.dataset.tTitle); el.setAttribute("aria-label", t(el.dataset.tTitle)); });
+}
+
+// ================= Utilidades =================
+function fmtSize(b) { return b > 1e9 ? (b / 1e9).toFixed(2) + " GB" : Math.round(b / 1e6) + " MB"; }
+function hue(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) % 360; return h; }
+function initials(s) { return s.split(/\s+/).filter(w => /^[A-Za-z0-9]/.test(w)).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "PS"; }
+function cleanTitle(name) {
+  const s = name.replace(/\.[^.]+$/, "");
+  return s.replace(/\s*[\(\[][^\)\]]*[\)\]]/g, "").trim() || s;
+}
+function ago(ts) {
+  const m = Math.round((Date.now() - ts) / 60000);
+  if (m < 1) return t("justNow");
+  if (m < 60) return t("minAgo", { n: m });
+  if (m < 60 * 24) return t("hAgo", { n: Math.round(m / 60) });
+  return t("dAgo", { n: Math.round(m / 1440) });
+}
+let toastTimer;
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 3000);
+}
+function busy(msg) { $("busy").hidden = !msg; $("busyText").textContent = msg || ""; }
+
+// Última vez jugado: aparte del juego para no reescribir el archivo grande en IndexedDB
+const PLAYED_KEY = "ps1web-played";
+const played = readJSON(PLAYED_KEY);
+function markPlayed(key) { played[key] = Date.now(); writeJSON(PLAYED_KEY, played); }
+
+// ================= Juegos guardados en el navegador (IndexedDB) =================
+const DB_NAME = "ps1web", STORE = "games";
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(STORE, { keyPath: "id" });
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function dbDo(mode, fn) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, mode);
+    const req = fn(tx.objectStore(STORE));
+    tx.oncomplete = () => res(req && req.result);
+    tx.onerror = tx.onabort = () => rej(tx.error);
+  });
+}
+// Lista sin cargar los archivos: solo los datos de cada juego
+const localList = () => dbDo("readonly", s => s.getAll()).then(list => list.map(({ blob, extras, ...g }) => g)).catch(() => []);
+const localGet = id => dbDo("readonly", s => s.get(id));
+const localPut = rec => dbDo("readwrite", s => s.put(rec));
+const localDel = id => dbDo("readwrite", s => s.delete(id));
+
+// ================= Portadas =================
+function coverHTML(title) {
+  const h = hue(title);
+  return `<div class="cover"><div class="art" style="background:
+      radial-gradient(circle at 70% 30%, hsl(${(h + 40) % 360} 70% 55% / .55), transparent 55%),
+      linear-gradient(135deg, hsl(${h} 55% 36%), hsl(${(h + 60) % 360} 60% 16%))"><b>${initials(title)}</b></div>
+    <div class="spine"><span>PS1</span></div><div class="shine"></div><div class="playover"><i></i></div></div>`;
+}
+function gameTile({ title, meta, href, onRemove }) {
+  const a = document.createElement("a");
+  a.className = "game";
+  a.href = href;
+  a.innerHTML = coverHTML(title) + `<h3></h3><div class="meta"></div>`;
+  a.querySelector("h3").textContent = title;
+  a.querySelector(".meta").textContent = meta;
+  if (onRemove) {
+    const b = document.createElement("button");
+    b.className = "more"; b.title = t("remove"); b.setAttribute("aria-label", t("remove"));
+    b.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>`;
+    b.onclick = e => { e.preventDefault(); e.stopPropagation(); onRemove(); };
+    a.appendChild(b);
+  }
+  return a;
+}
+function addTile() {
+  const l = document.createElement("label");
+  l.htmlFor = "pick";
+  l.innerHTML = `<div class="add-tile"><span class="plus">+</span><span>${t("addTile")}</span></div>`;
+  return l;
+}
+
+// ================= Biblioteca =================
+let localGames = [], serverGames = null;
+
+async function renderHome() {
+  localGames = await localList();
+  const has = localGames.length > 0 || (serverGames && serverGames.games.length > 0);
+  $("hero").hidden = has;
+  $("library").hidden = !localGames.length;
+
+  const grid = $("localGrid");
+  grid.innerHTML = "";
+  localGames.sort((a, b) => (played["l:" + b.id] || b.added) - (played["l:" + a.id] || a.added));
+  for (const g of localGames) {
+    const p = played["l:" + g.id];
+    grid.appendChild(gameTile({
+      title: g.title,
+      meta: `${g.name.split(".").pop().toUpperCase()} · ${fmtSize(g.size)}${p ? " · " + ago(p) : ""}`,
+      href: "?local=" + encodeURIComponent(g.id),
+      onRemove: async () => {
+        if (!confirm(t("removeQ", { t: g.title }))) return;
+        await localDel(g.id);
+        delete played["l:" + g.id]; writeJSON(PLAYED_KEY, played);
+        toast(t("removed"));
+        renderHome();
+      },
+    }));
+  }
+  if (localGames.length) grid.appendChild(addTile());
+  renderContinue();
+}
+
+function renderContinue() {
+  // el juego jugado más recientemente, de cualquiera de las dos bibliotecas
+  const all = [
+    ...localGames.map(g => ({ key: "l:" + g.id, title: g.title, href: "?local=" + encodeURIComponent(g.id), meta: g.name.split(".").pop().toUpperCase() + " · " + fmtSize(g.size) })),
+    ...((serverGames && serverGames.games) || []).map(g => ({ key: "s:" + g.id, title: g.title, href: "?game=" + encodeURIComponent(g.id), meta: g.format + " · " + fmtSize(g.size) })),
+  ].filter(g => played[g.key]).sort((a, b) => played[b.key] - played[a.key]);
+  const g = all[0];
+  $("continueSec").hidden = !g;
+  if (!g) return;
+  const c = $("continueCard");
+  c.innerHTML = coverHTML(g.title) + `<div class="info"><div class="eyebrow">${t("continueEyebrow")}</div><h2></h2>
+    <div class="meta"></div><a class="btn primary big"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>${t("play")}</a></div>`;
+  c.querySelector("h2").textContent = g.title;
+  c.querySelector(".meta").textContent = t("lastPlayed", { t: ago(played[g.key]) }) + " · " + g.meta;
+  c.querySelector("a").href = g.href;
+  c.querySelector(".cover").onclick = () => location.href = g.href;
+  c.querySelector(".cover").style.cursor = "pointer";
+}
+
+const extOf = name => name.split(".").pop().toLowerCase();
+const GAME_EXTS = ["chd", "bin", "pbp", "iso", "img", "zip", "7z", "cue", "m3u"];
+
+async function addFiles(fileList) {
+  const files = [...fileList].filter(f => GAME_EXTS.includes(extOf(f.name)));
+  if (!files.length) return toast(t("notGame"));
+  // el archivo principal: el .cue si viene, si no el primero
+  const main = files.find(f => extOf(f.name) === "cue") || files[0];
+  if (extOf(main.name) === "cue" && files.length === 1) return toast(t("cueAlone"));
+  const size = files.reduce((n, f) => n + f.size, 0);
+  const rec = { id: main.name + ":" + size, name: main.name, title: cleanTitle(main.name), size, added: Date.now(),
+    blob: main, extras: files.filter(f => f !== main).map(f => ({ name: f.name, blob: f })) };
+  busy(t("saving", { t: rec.title }));
+  try {
+    await localPut(rec);
+    busy(null);
+    location.href = "?local=" + encodeURIComponent(rec.id);
+  } catch (err) {
+    // sin espacio o almacenamiento bloqueado: se juega igual, solo que no queda guardado
+    busy(null);
+    toast(t("noStore"));
+    startGame(localGameConfig(rec));
+  }
+}
+$("pick").addEventListener("change", e => { const f = e.target.files; if (f.length) addFiles(f); e.target.value = ""; });
+
+// Arrastrar y soltar en cualquier parte de la página
+let dragDepth = 0;
+addEventListener("dragenter", e => { if (document.body.classList.contains("playing")) return; if ([...e.dataTransfer.types].includes("Files")) { dragDepth++; $("dropOverlay").classList.add("show"); } });
+addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("dropOverlay").classList.remove("show"); } });
+addEventListener("dragover", e => e.preventDefault());
+addEventListener("drop", e => {
+  e.preventDefault(); dragDepth = 0; $("dropOverlay").classList.remove("show");
+  if (!document.body.classList.contains("playing") && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+
+// Un .bin suelto no arranca: el núcleo necesita un .cue al lado. Se lo generamos.
+function localGameConfig(g) {
+  const extras = {};
+  for (const x of g.extras || []) extras["/" + x.name] = new File([x.blob], x.name);
+  let gameUrl = new File([g.blob], g.name);
+  if (extOf(g.name) === "bin" && !(g.extras || []).length) {
+    const cue = `FILE "${g.name}" BINARY\r\n  TRACK 01 MODE2/2352\r\n    INDEX 01 00:00:00\r\n`;
+    extras["/" + g.name] = gameUrl;
+    gameUrl = new File([cue], g.name.replace(/\.bin$/i, ".cue"));
+  }
+  return { title: g.title, gameUrl, extras };
+}
+
+// ================= Biblioteca servida por server.py (solo en el ordenador / red local) =================
+async function serverData() {
+  try {
+    const r = await fetch("api/games", { cache: "no-store" });
+    if (!r.ok || !(r.headers.get("content-type") || "").includes("json")) return null;
+    return await r.json();
+  } catch { return null; }
+}
+function renderServer(data) {
+  $("serverSec").hidden = false;
+  $("srvSub").textContent = t("srvSub", { p: data.library });
+  const chip = $("biosChip");
+  chip.querySelector("span:last-child").textContent = data.bios ? t("biosOk", { b: data.bios }) : t("biosNo");
+  chip.classList.toggle("ok", !!data.bios);
+  const grid = $("srvGrid");
+  grid.innerHTML = "";
+  for (const g of data.games) {
+    const p = played["s:" + g.id];
+    grid.appendChild(gameTile({ title: g.title, meta: `${g.format} · ${fmtSize(g.size)}${p ? " · " + ago(p) : ""}`, href: "?game=" + encodeURIComponent(g.id) }));
+  }
+}
+
+// ================= Mando =================
+// EmulatorJS trae los botones al estilo Nintendo (A del Xbox = ●). Aquí van por posición,
+// como en un mando de PlayStation: A=✕  B=●  X=■  Y=▲. Teclado incluido.
+// Índices de RetroPad: 0=✕ 1=■ 2=Select 3=Start 4-7=cruceta 8=● 9=▲ 10=L1 11=R1 12=L2 13=R2
+// 14=L3 15=R3 16-23=sticks 24=guardado rápido 25=carga rápida 26=cambiar ranura 27=avance rápido
+const CONTROLS = {
+  0: {
+    0: { value: "x", value2: "BUTTON_1" },              // ✕  ← A
+    8: { value: "c", value2: "BUTTON_2" },              // ●  ← B
+    1: { value: "z", value2: "BUTTON_3" },              // ■  ← X
+    9: { value: "s", value2: "BUTTON_4" },              // ▲  ← Y
+    2: { value: "shift", value2: "SELECT" },            // Select ← View (⧉)
+    3: { value: "enter", value2: "START" },             // Start  ← Menu (≡)
+    4: { value: "up arrow", value2: "DPAD_UP" },
+    5: { value: "down arrow", value2: "DPAD_DOWN" },
+    6: { value: "left arrow", value2: "DPAD_LEFT" },
+    7: { value: "right arrow", value2: "DPAD_RIGHT" },
+    10: { value: "q", value2: "LEFT_TOP_SHOULDER" },    // L1 ← LB
+    11: { value: "e", value2: "RIGHT_TOP_SHOULDER" },   // R1 ← RB
+    12: { value: "w", value2: "LEFT_BOTTOM_SHOULDER" }, // L2 ← LT
+    13: { value: "r", value2: "RIGHT_BOTTOM_SHOULDER" },// R2 ← RT
+    14: { value: "", value2: "LEFT_STICK" },            // L3 ← clic stick izquierdo
+    15: { value: "", value2: "RIGHT_STICK" },           // R3 ← clic stick derecho
+    16: { value: "l", value2: "LEFT_STICK_X:+1" },
+    17: { value: "j", value2: "LEFT_STICK_X:-1" },
+    18: { value: "k", value2: "LEFT_STICK_Y:+1" },
+    19: { value: "i", value2: "LEFT_STICK_Y:-1" },
+    20: { value: "", value2: "RIGHT_STICK_X:+1" },
+    21: { value: "", value2: "RIGHT_STICK_X:-1" },
+    22: { value: "", value2: "RIGHT_STICK_Y:+1" },
+    23: { value: "", value2: "RIGHT_STICK_Y:-1" },
+    24: { value: "1" },   // guardado rápido
+    25: { value: "2" },   // carga rápida
+    26: { value: "3" },   // cambiar ranura
+    27: { value: "space" }, 28: {}, 29: {},
+  },
+  1: {}, 2: {}, 3: {},
+};
+const CONTROLS_VERSION = "xbox-1";
+
+// EmulatorJS guarda los controles por juego; si cambian los de aquí, se borran una vez los viejos.
+function resetSavedControls() {
+  try {
+    if (localStorage.getItem("ps1web-controls") === CONTROLS_VERSION) return;
+    for (const k of Object.keys(localStorage)) {
+      if (!k.startsWith("ejs-") || !k.endsWith("-settings") || k === "ejs-settings") continue;
+      const v = JSON.parse(localStorage.getItem(k));
+      if (v && v.controlSettings) { delete v.controlSettings; localStorage.setItem(k, JSON.stringify(v)); }
+    }
+    localStorage.setItem("ps1web-controls", CONTROLS_VERSION);
+  } catch {}
+}
+
+// Tablas de controles (mando y teclado)
+const SYM = { tri: '<b class="tri">▲</b>', cir: '<b class="cir">●</b>', x: '<b class="x">✕</b>', squ: '<b class="squ">■</b>' };
+const k = s => s.split(" ").map(x => `<span class="key">${x}</span>`).join(" ");
+function renderMaps() {
+  const rows = [
+    [SYM.tri + t("rTri"), k("Y"), k("S")],
+    [SYM.cir + t("rCir"), k("B"), k("C")],
+    [SYM.x + t("rX"), k("A"), k("X")],
+    [SYM.squ + t("rSqu"), k("X"), k("Z")],
+    ["<b>✚</b>" + t("rDpad"), "✚", t("arrows")],
+    ["<b>◎</b>" + t("rStick"), "◎", k("I J K L")],
+    ["<b></b>" + t("rL1"), k("LB") + k("RB"), k("Q") + k("E")],
+    ["<b></b>" + t("rL2"), k("LT") + k("RT"), k("W") + k("R")],
+    ["<b></b>" + t("rStart"), k("≡"), k("Enter")],
+    ["<b></b>" + t("rSelect"), k("⧉"), k("Shift")],
+    ["<b></b>" + t("rAnalog"), k("LB") + "+" + k("RB") + "+" + k("⧉"), k("Q") + "+" + k("E") + "+" + k("Shift")],
+    ["<b></b>" + t("rSave"), t("emuMenu"), k("1") + " / " + k("2")],
+    ["<b></b>" + t("rFF"), "—", k("Space")],
+  ];
+  const html = col => rows.map(r => `<div class="map-row"><span class="ps">${r[0]}</span><span class="arrow">→</span><span class="xb">${r[col]}</span></div>`).join("");
+  $("mapPad").innerHTML = html(1);
+  $("mapKbd").innerHTML = html(2);
+}
+$$(".tabs button").forEach(b => b.onclick = () => {
+  $$(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  $("mapPad").hidden = b.dataset.tab !== "pad";
+  $("mapKbd").hidden = b.dataset.tab !== "kbd";
+});
+
+function getPad() { return [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(Boolean) || null; }
+function padKind(p) {
+  if (!p) return null;
+  if (/xbox|xinput|045e/i.test(p.id)) return "xbox";
+  if (/playstation|dualsense|dualshock|054c|wireless controller/i.test(p.id)) return "ps";
+  return "generic";
+}
+function updatePad(announce) {
+  const kind = padKind(getPad());
+  const label = kind === "xbox" ? t("padXbox") : kind === "ps" ? t("padPs") : kind ? t("padGeneric") : t("padNone");
+  $$(".padchip").forEach(c => {
+    c.classList.toggle("ok", !!kind);
+    c.querySelector(".txt").textContent = label;
+    c.title = kind ? label : t("padNoneTip");
+  });
+  applyTouch(!!kind);
+  if (announce) toast(kind ? "🎮 " + label : t("padOff"));
+}
+// Botones táctiles: "auto" los oculta mientras haya mando
+function applyTouch(hasPad) {
+  const emu = window.EJS_emulator;
+  if (!emu || !emu.touch || !emu.toggleVirtualGamepad || !emu.started) return;
+  emu.toggleVirtualGamepad(settings.touch === "always" || (settings.touch === "auto" && !hasPad));
+}
+addEventListener("gamepadconnected", () => updatePad(true));
+addEventListener("gamepaddisconnected", () => updatePad(true));
+
+// Prueba en vivo: ilumina en el dibujo los botones que se pulsan
+const padGroups = $$("#padSvg [data-btn]");
+function padLoop() {
+  if (!document.body.classList.contains("playing")) {
+    const p = getPad();
+    for (const g of padGroups) {
+      const i = +g.dataset.btn;
+      const on = !!(p && p.buttons[i] && (p.buttons[i].pressed || p.buttons[i].value > .3));
+      g.classList.toggle("on", on);
+      if (g.dataset.stick !== undefined) {
+        const a = +g.dataset.stick;
+        const dx = p ? (p.axes[a] || 0) * 10 : 0, dy = p ? (p.axes[a + 1] || 0) * 10 : 0;
+        g.querySelector(".stick-dot").setAttribute("transform", `translate(${dx.toFixed(1)} ${dy.toFixed(1)})`);
+        if (Math.hypot(dx, dy) > 3) g.classList.add("on");
+      }
+    }
+  }
+  requestAnimationFrame(padLoop);
+}
+
+// ================= Ajustes (panel) =================
+function syncSettingsUI() {
+  $$(".seg[data-setting]").forEach(seg => seg.querySelectorAll("button").forEach(b => b.classList.toggle("on", settings[seg.dataset.setting] === b.dataset.v)));
+  $$("input[data-setting]").forEach(i => i.checked = !!settings[i.dataset.setting]);
+}
+$$(".seg[data-setting]").forEach(seg => seg.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const key = seg.dataset.setting, before = settings[key];
+  settings[key] = b.dataset.v; writeJSON(SETTINGS_KEY, settings); syncSettingsUI();
+  if (key === "lang" && before !== b.dataset.v) location.reload();
+  if (key === "touch") applyTouch(!!getPad());
+}));
+$$("input[data-setting]").forEach(i => i.addEventListener("change", () => { settings[i.dataset.setting] = i.checked; writeJSON(SETTINGS_KEY, settings); }));
+$("openSettings").onclick = () => { syncSettingsUI(); $("settings").showModal(); };
+$("closeSettings").onclick = $("doneSettings").onclick = () => $("settings").close();
+$("settings").addEventListener("click", e => { if (e.target === $("settings")) $("settings").close(); });
+
+// ================= Ayuda =================
+function renderFaq() {
+  $("faq").innerHTML = t("faq").map(([q, a]) => `<details><summary>${q}</summary><div class="ans">${a}</div></details>`).join("");
+}
+
+// ================= Consejo para iPad / iPhone =================
+function iosBanner() {
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+  if (!ios || standalone || localStorage.getItem("ps1web-ios-tip")) return;
+  $("iosBanner").hidden = false;
+  $("closeIos").onclick = () => { $("iosBanner").hidden = true; try { localStorage.setItem("ps1web-ios-tip", "1"); } catch {} };
+}
+
+// ================= Estrellas y calificación (solo en GitHub Pages) =================
+// En usuario.github.io/repo el repositorio se deduce de la dirección; no hay que configurar nada.
+function repoUrl() {
+  const host = location.hostname;
+  if (!host.endsWith(".github.io")) return null;
+  const user = host.split(".")[0];
+  const repo = location.pathname.split("/")[1];
+  return `https://github.com/${user}/${repo || host}`;
+}
+function renderSocial() {
+  const repo = repoUrl();
+  if (!repo) return;
+  $("social").hidden = false;
+  $("starLink").href = repo;
+  $("feedbackLink").href = repo + "/issues/new?title=" + encodeURIComponent(t("feedbackTitle"));
+  const stars = $("stars");
+  stars.setAttribute("aria-label", "1–5");
+  for (let i = 1; i <= 5; i++) {
+    const b = document.createElement("button");
+    b.textContent = "★";
+    b.title = i + " / 5";
+    b.onmouseenter = b.onfocus = () => [...stars.children].forEach((s, j) => s.classList.toggle("on", j < i));
+    b.onclick = () => {
+      const title = t("rateIssueTitle", { s: "★".repeat(i) + "☆".repeat(5 - i), n: i });
+      const body = t("rateIssueBody", { n: i, ua: navigator.userAgent });
+      window.open(`${repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`, "_blank", "noopener");
+    };
+    stars.appendChild(b);
+  }
+  stars.onmouseleave = () => [...stars.children].forEach(s => s.classList.remove("on"));
+}
+
+// ================= Emulador =================
+function startGame({ title, gameUrl, biosUrl, extras, playedKey }) {
+  if (playedKey) markPlayed(playedKey);
+  resetSavedControls();
+  document.body.classList.add("playing");
+  $("ptitle").textContent = title;
+  document.title = title + " · PS1 Web";
+  window.EJS_player = "#game";
+  window.EJS_core = "psx";
+  window.EJS_gameName = title;  // las partidas guardadas se asocian a este nombre
+  window.EJS_gameUrl = gameUrl;
+  if (biosUrl) window.EJS_biosUrl = biosUrl;
+  if (extras && Object.keys(extras).length) window.EJS_externalFiles = extras;
+  window.EJS_defaultControls = CONTROLS;
+  // filtro de imagen: shaders que trae EmulatorJS
+  window.EJS_defaultOptions = { shader: { sharp: "disabled", smooth: "bicubic", crt: "crt-easymode.glslp" }[settings.filter] || "bicubic" };
+  window.EJS_fullscreenOnLoaded = !!settings.fullscreen;
+  window.EJS_onGameStart = () => updatePad(false);
+  window.EJS_pathtodata = "https://cdn.emulatorjs.org/4.2.3/data/";
+  window.EJS_language = LANG === "es" ? "es-ES" : "en-US";
+  window.EJS_color = "#6c8cff";
+  window.EJS_backgroundColor = "#000";
+  window.EJS_startOnLoaded = true;
+  const s = document.createElement("script");
+  s.src = EJS_pathtodata + "loader.js";
+  document.body.appendChild(s);
+}
+$("fsBtn").onclick = () => {
+  const el = $("player");
+  const fs = document.fullscreenElement || document.webkitFullscreenElement;
+  if (fs) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  else (el.requestFullscreen || el.webkitRequestFullscreen || (() => {})).call(el);
+};
+
+async function main() {
+  applyI18n();
+  updatePad(false);
+  const localId = params.get("local");
+  if (localId) {
+    const g = await localGet(localId).catch(() => null);
+    if (!g) { location.href = "./"; return; }
+    return startGame({ ...localGameConfig(g), playedKey: "l:" + g.id });
+  }
+  const data = await serverData();
+  const gameId = params.get("game");
+  if (gameId && data) {
+    const g = data.games.find(x => x.id === gameId);
+    if (!g) { location.href = "./"; return; }
+    const packed = g.format === "CUE" || g.format === "M3U";
+    return startGame({
+      title: g.title,
+      gameUrl: "game/" + encodeURI(g.id) + (packed ? ".zip" : ""),
+      biosUrl: data.bios ? "bios/" + encodeURIComponent(data.bios) : null,
+      playedKey: "s:" + g.id,
+    });
+  }
+  serverGames = data;
+  if (data) renderServer(data);
+  await renderHome();
+  renderMaps();
+  renderFaq();
+  renderSocial();
+  iosBanner();
+  requestAnimationFrame(padLoop);
+  // pedir al navegador que no borre los juegos guardados por falta de uso
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+}
+
+main().catch(e => toast("Error: " + e.message));
+</script>
+</body>
+</html>
