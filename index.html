@@ -474,7 +474,8 @@ const I18N = {
       ["¿Qué archivos sirven?", "Recomendado <code>.chd</code> (un solo archivo, ocupa menos). También <code>.bin</code> solo, <code>.cue</code> + <code>.bin</code> (elígelos juntos), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> y <code>.7z</code>."],
       ["¿Dónde se guardan mis juegos y partidas?", "En el navegador de cada dispositivo (IndexedDB). Nada se sube a internet. La memory card se guarda sola cada pocos segundos y al salir del juego. Si borras los datos del sitio, se borran también. En iPad / iPhone, agrégalo a la pantalla de inicio para protegerlos."],
       ["¿Cómo guardo la partida?", "Con la memory card del propio juego, como en la consola. O, en cualquier momento, con los botones <b>Guardar</b> y <b>Cargar</b> de la barra de arriba (o las teclas <code>1</code> y <code>2</code>). Se guardan en este dispositivo y se conservan aunque cierres la página. Con el botón de carpeta puedes abrir un archivo de guardado <code>.state</code> o <code>.srm</code> que tengas descargado."],
-      ["La palanca analógica no mueve al personaje", "La PS1 original no tenía palancas, así que muchos juegos solo usan la cruceta. Por eso la palanca izquierda funciona como cruceta (puedes desactivarlo en Ajustes). En juegos con soporte DualShock, activa el modo analógico con <code>LB + RB + Vista</code>."],
+      ["La palanca analógica no mueve al personaje", "La PS1 original no tenía palancas, así que muchos juegos solo usan la cruceta. Por eso la palanca izquierda funciona como cruceta (puedes desactivarlo en Ajustes). El emulador se presenta al juego como un mando DualShock: en juegos compatibles, activa el modo analógico con <code>LB + RB + Vista</code>."],
+      ["¿Vibra el mando?", "Los juegos ahora ven un mando DualShock, así que la opción de vibración ya se puede activar en su menú. Pero el mando no vibrará de verdad: el emulador web todavía no envía la vibración al navegador."],
       ["En el iPad se cierra al cargar el juego", "Los iPad antiguos tienen poca memoria. Convierte el juego a <code>.chd</code> (ocupa la mitad) con <code>chdman createcd -i juego.cue -o juego.chd</code>."],
       ["No detecta mi mando", "Pulsa cualquier botón con la página abierta: los navegadores no muestran el mando hasta entonces. Un mando Xbox solo recuerda un dispositivo Bluetooth; vuelve a emparejarlo al cambiar de aparato."],
       ["¿Necesito la BIOS?", "No. Trae una BIOS de reemplazo. Con la BIOS original de tu consola algunos juegos funcionan mejor (solo en modo ordenador con <code>server.py</code>)."],
@@ -525,7 +526,8 @@ const I18N = {
       ["Which files work?", "Best is <code>.chd</code> (single file, smaller). Also a lone <code>.bin</code>, <code>.cue</code> + <code>.bin</code> (pick them together), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> and <code>.7z</code>."],
       ["Where are my games and saves stored?", "In the browser on each device (IndexedDB). Nothing is uploaded. The memory card is saved every few seconds and when you leave the game. Clearing this site's data deletes them. On iPad / iPhone, add it to your Home Screen to protect them."],
       ["How do I save?", "With the game's own memory card, like on the console. Or save anywhere with the <b>Save</b> and <b>Load</b> buttons in the top bar (or the <code>1</code> and <code>2</code> keys). Saves stay on this device even after closing the page. The folder button opens a <code>.state</code> or <code>.srm</code> save file you downloaded."],
-      ["The analog stick doesn't move my character", "The original PS1 pad had no sticks, so many games only read the D-pad. That's why the left stick works as a D-pad (you can turn it off in Settings). In DualShock games, turn on analog mode with <code>LB + RB + View</code>."],
+      ["The analog stick doesn't move my character", "The original PS1 pad had no sticks, so many games only read the D-pad. That's why the left stick works as a D-pad (you can turn it off in Settings). The emulator presents a DualShock to the game: in compatible games, turn on analog mode with <code>LB + RB + View</code>."],
+      ["Does the controller vibrate?", "Games now see a DualShock, so their vibration option can be turned on. But the controller won't physically rumble: the web emulator doesn't send vibration to the browser yet."],
       ["My iPad closes the page when loading a game", "Older iPads have little memory. Convert the game to <code>.chd</code> (about half the size) with <code>chdman createcd -i game.cue -o game.chd</code>."],
       ["My controller isn't detected", "Press any button with the page open — browsers hide controllers until then. An Xbox controller remembers only one Bluetooth device; re-pair it when switching."],
       ["Do I need a BIOS?", "No, a replacement BIOS is built in. Your console's original BIOS improves compatibility (computer mode with <code>server.py</code> only)."],
@@ -1066,6 +1068,27 @@ $("backBtn").addEventListener("click", e => {
   setTimeout(() => { location.href = "./"; }, 400);  // da tiempo a que IndexedDB termine de escribir
 });
 
+// Por defecto el núcleo presenta al juego un mando PS1 básico (sin palancas ni vibración), así que
+// los juegos desactivan esas opciones. Le decimos a RetroArch que el jugador 1 usa un DualShock:
+// RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_ANALOG, 1) = (2 << 8) | 5 = 517 en pcsx_rearmed.
+// EmulatorJS escribe retroarch.cfg con getRetroArchCfg() al crear el GameManager; se parchea antes.
+function useDualShock() {
+  const patch = () => {
+    const GM = window.EJS_GameManager;
+    if (!GM) return false;
+    if (!GM.prototype.ps1webDualShock) {
+      const base = GM.prototype.getRetroArchCfg;
+      GM.prototype.getRetroArchCfg = function () {
+        return base.call(this) + "input_libretro_device_p1 = 517\n";
+      };
+      GM.prototype.ps1webDualShock = true;
+    }
+    return true;
+  };
+  if (patch()) return;
+  const timer = setInterval(() => { if (patch()) clearInterval(timer); }, 20);
+}
+
 // ================= Emulador =================
 function startGame({ title, gameUrl, biosUrl, extras, playedKey }) {
   if (playedKey) markPlayed(playedKey);
@@ -1092,6 +1115,7 @@ function startGame({ title, gameUrl, biosUrl, extras, playedKey }) {
   window.EJS_backgroundColor = "#000";
   window.EJS_startOnLoaded = true;
   requestAnimationFrame(padLoop);
+  useDualShock();
   const s = document.createElement("script");
   s.src = EJS_pathtodata + "loader.js";
   document.body.appendChild(s);

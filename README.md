@@ -114,7 +114,13 @@ In your browser's storage (IndexedDB) on each device — nothing is uploaded. Me
 <details>
 <summary><b>The analog stick doesn't move my character.</b></summary>
 
-The original PS1 pad had no sticks, so many games only read the D-pad. PS1 Web makes the left stick act as a D-pad, so it works in every game (you can turn this off in Settings). In DualShock-compatible games, turn on analog mode with `LB + RB + View`.
+The original PS1 pad had no sticks, so many games only read the D-pad. PS1 Web makes the left stick act as a D-pad, so it works in every game (you can turn this off in Settings). The emulator presents a DualShock controller to games; in compatible games, turn on analog mode with `LB + RB + View`.
+</details>
+
+<details>
+<summary><b>Does the controller vibrate?</b></summary>
+
+Games see a DualShock, so their in-game vibration option can be turned on. The controller won't physically rumble yet, because the web emulator (EmulatorJS) doesn't pass vibration to the browser.
 </details>
 
 <details>
