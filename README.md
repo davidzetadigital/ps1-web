@@ -25,7 +25,8 @@
 - **Touch controls on iPad and phones**, which hide automatically when a controller connects.
 - **Simple settings.** Language, touch buttons, fullscreen on start and image style (sharp, smooth or retro CRT TV).
 - **English and Spanish**, picked automatically from your device.
-- **Save anywhere.** Memory card saves plus quick save states, kept per device.
+- **Saves that stick.** Memory card saves are written every few seconds, and quick save states survive closing the page.
+- **Left stick works everywhere.** It doubles as a D-pad, so even digital-only PS1 games respond to it.
 - **Install it like an app.** Add to Home Screen on iPad/iPhone for a full-screen experience.
 - **Optional home library.** Run one tiny Python script and every game in a folder on your computer shows up on every device in your house.
 - **Single HTML file.** No build step, no framework, no dependencies to install.
@@ -107,7 +108,13 @@ chdman createcd -i "My Game.cue" -o "My Game.chd"
 <details>
 <summary><b>Where are my saves?</b></summary>
 
-In your browser's storage on each device. Clearing website data for this page deletes them. On iPad/iPhone, adding the page to the Home Screen protects them from automatic cleanup.
+In your browser's storage (IndexedDB) on each device — nothing is uploaded. Memory card saves are written every few seconds and when you leave a game, and quick saves (keys `1` / `2` or the emulator menu) are kept even after closing the page. Clearing website data for this page deletes them. On iPad/iPhone, adding the page to the Home Screen protects them from automatic cleanup.
+</details>
+
+<details>
+<summary><b>The analog stick doesn't move my character.</b></summary>
+
+The original PS1 pad had no sticks, so many games only read the D-pad. PS1 Web makes the left stick act as a D-pad, so it works in every game (you can turn this off in Settings). In DualShock-compatible games, turn on analog mode with `LB + RB + View`.
 </details>
 
 <details>

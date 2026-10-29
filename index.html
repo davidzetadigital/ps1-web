@@ -390,7 +390,7 @@
 
 <section id="player">
   <div class="pbar">
-    <a class="btn ghost" href="./" style="padding:8px 12px">← <span data-t="back">Biblioteca</span></a>
+    <a class="btn ghost" href="./" id="backBtn" style="padding:8px 12px">← <span data-t="back">Biblioteca</span></a>
     <h1 id="ptitle"></h1>
     <span class="chip padchip"><span class="dot"></span><span class="txt"></span></span>
     <button class="icon-btn" id="fsBtn" data-t-title="fullscreen" aria-label="Pantalla completa">
@@ -415,6 +415,10 @@
     <label class="switch"><input type="checkbox" data-setting="fullscreen"><span></span></label>
   </div>
   <div class="setting">
+    <div class="lbl"><b data-t="setStick">Stick izquierdo como cruceta</b><small data-t="setStickSub">Para mover con la palanca en cualquier juego</small></div>
+    <label class="switch"><input type="checkbox" data-setting="stickDpad"><span></span></label>
+  </div>
+  <div class="setting">
     <div class="lbl"><b data-t="setFilter">Imagen</b><small data-t="setFilterSub">Cómo se ven los gráficos</small></div>
     <div class="seg" data-setting="filter"><button data-v="sharp" data-t="fSharp">Nítida</button><button data-v="smooth" data-t="fSmooth">Suave</button><button data-v="crt" data-t="fCrt">TV antigua</button></div>
   </div>
@@ -431,7 +435,7 @@ const $$ = sel => [...document.querySelectorAll(sel)];
 
 // ================= Ajustes =================
 const SETTINGS_KEY = "ps1web-settings";
-const settings = Object.assign({ lang: "auto", touch: "auto", fullscreen: false, filter: "smooth" }, readJSON(SETTINGS_KEY));
+const settings = Object.assign({ lang: "auto", touch: "auto", fullscreen: false, filter: "smooth", stickDpad: true }, readJSON(SETTINGS_KEY));
 function readJSON(k) { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch { return {}; } }
 function writeJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 
@@ -462,8 +466,9 @@ const I18N = {
     helpTitle: "Ayuda",
     faq: [
       ["¿Qué archivos sirven?", "Recomendado <code>.chd</code> (un solo archivo, ocupa menos). También <code>.bin</code> solo, <code>.cue</code> + <code>.bin</code> (elígelos juntos), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> y <code>.7z</code>."],
-      ["¿Dónde se guardan mis juegos y partidas?", "En el navegador de cada dispositivo. Nada se sube a internet. Si borras los datos del sitio, se borran también. En iPad / iPhone, agrégalo a la pantalla de inicio para protegerlos."],
-      ["¿Cómo guardo la partida?", "Con la memory card del propio juego, como en la consola. También con guardado rápido: en el menú del emulador (toca la pantalla o mueve el ratón abajo) o con las teclas <code>1</code> y <code>2</code>."],
+      ["¿Dónde se guardan mis juegos y partidas?", "En el navegador de cada dispositivo (IndexedDB). Nada se sube a internet. La memory card se guarda sola cada pocos segundos y al salir del juego. Si borras los datos del sitio, se borran también. En iPad / iPhone, agrégalo a la pantalla de inicio para protegerlos."],
+      ["¿Cómo guardo la partida?", "Con la memory card del propio juego, como en la consola. También con guardado rápido: en el menú del emulador (toca la pantalla o mueve el ratón abajo) o con las teclas <code>1</code> (guardar) y <code>2</code> (cargar). Los guardados rápidos se conservan aunque cierres la página."],
+      ["La palanca analógica no mueve al personaje", "La PS1 original no tenía palancas, así que muchos juegos solo usan la cruceta. Por eso la palanca izquierda funciona como cruceta (puedes desactivarlo en Ajustes). En juegos con soporte DualShock, activa el modo analógico con <code>LB + RB + Vista</code>."],
       ["En el iPad se cierra al cargar el juego", "Los iPad antiguos tienen poca memoria. Convierte el juego a <code>.chd</code> (ocupa la mitad) con <code>chdman createcd -i juego.cue -o juego.chd</code>."],
       ["No detecta mi mando", "Pulsa cualquier botón con la página abierta: los navegadores no muestran el mando hasta entonces. Un mando Xbox solo recuerda un dispositivo Bluetooth; vuelve a emparejarlo al cambiar de aparato."],
       ["¿Necesito la BIOS?", "No. Trae una BIOS de reemplazo. Con la BIOS original de tu consola algunos juegos funcionan mejor (solo en modo ordenador con <code>server.py</code>)."],
@@ -474,7 +479,7 @@ const I18N = {
     legal: "PS1 Web no incluye juegos ni BIOS. Usa solo copias de juegos que tengas. PlayStation es una marca de Sony Interactive Entertainment; este proyecto no está afiliado a Sony.",
     back: "Biblioteca",
     setLang: "Idioma", setLangSub: "De la página y del emulador", setTouch: "Botones táctiles", setTouchSub: "En iPad y móvil",
-    touchAuto: "Auto", touchOn: "Siempre", touchOff: "Nunca", setFs: "Pantalla completa al jugar", setFsSub: "Al abrir un juego",
+    touchAuto: "Auto", touchOn: "Siempre", touchOff: "Nunca", setFs: "Pantalla completa al jugar", setFsSub: "Al abrir un juego", setStick: "Stick izquierdo como cruceta", setStickSub: "Para mover con la palanca en cualquier juego",
     setFilter: "Imagen", setFilterSub: "Cómo se ven los gráficos", fSharp: "Nítida", fSmooth: "Suave", fCrt: "TV antigua", setNote: "Se guardan en este dispositivo.", done: "Listo",
     dropHere: "Suelta el juego aquí", notGame: "Eso no parece un juego de PS1.", cueAlone: "Elige el .cue junto con su .bin (o solo el .bin).",
     saving: "Guardando “{t}” en este dispositivo…", noStore: "No se pudo guardar; se abrirá solo esta vez.",
@@ -506,8 +511,9 @@ const I18N = {
     helpTitle: "Help",
     faq: [
       ["Which files work?", "Best is <code>.chd</code> (single file, smaller). Also a lone <code>.bin</code>, <code>.cue</code> + <code>.bin</code> (pick them together), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> and <code>.7z</code>."],
-      ["Where are my games and saves stored?", "In the browser on each device. Nothing is uploaded. Clearing this site's data deletes them. On iPad / iPhone, add it to your Home Screen to protect them."],
-      ["How do I save?", "With the game's own memory card, like on the console. Or use quick saves from the emulator menu (tap the screen or move the mouse to the bottom) or the <code>1</code> and <code>2</code> keys."],
+      ["Where are my games and saves stored?", "In the browser on each device (IndexedDB). Nothing is uploaded. The memory card is saved every few seconds and when you leave the game. Clearing this site's data deletes them. On iPad / iPhone, add it to your Home Screen to protect them."],
+      ["How do I save?", "With the game's own memory card, like on the console. Or use quick saves from the emulator menu (tap the screen or move the mouse to the bottom) or the <code>1</code> (save) and <code>2</code> (load) keys. Quick saves are kept even after closing the page."],
+      ["The analog stick doesn't move my character", "The original PS1 pad had no sticks, so many games only read the D-pad. That's why the left stick works as a D-pad (you can turn it off in Settings). In DualShock games, turn on analog mode with <code>LB + RB + View</code>."],
       ["My iPad closes the page when loading a game", "Older iPads have little memory. Convert the game to <code>.chd</code> (about half the size) with <code>chdman createcd -i game.cue -o game.chd</code>."],
       ["My controller isn't detected", "Press any button with the page open — browsers hide controllers until then. An Xbox controller remembers only one Bluetooth device; re-pair it when switching."],
       ["Do I need a BIOS?", "No, a replacement BIOS is built in. Your console's original BIOS improves compatibility (computer mode with <code>server.py</code> only)."],
@@ -518,7 +524,7 @@ const I18N = {
     legal: "PS1 Web does not include games or BIOS files. Only play games you own. PlayStation is a trademark of Sony Interactive Entertainment; this project is not affiliated with Sony.",
     back: "Library",
     setLang: "Language", setLangSub: "For the page and the emulator", setTouch: "Touch buttons", setTouchSub: "On iPad and phones",
-    touchAuto: "Auto", touchOn: "Always", touchOff: "Never", setFs: "Fullscreen when playing", setFsSub: "When a game opens",
+    touchAuto: "Auto", touchOn: "Always", touchOff: "Never", setFs: "Fullscreen when playing", setFsSub: "When a game opens", setStick: "Left stick as D-pad", setStickSub: "Move with the stick in any game",
     setFilter: "Image", setFilterSub: "How the graphics look", fSharp: "Sharp", fSmooth: "Smooth", fCrt: "Retro TV", setNote: "Saved on this device.", done: "Done",
     dropHere: "Drop the game here", notGame: "That doesn't look like a PS1 game.", cueAlone: "Pick the .cue together with its .bin (or just the .bin).",
     saving: "Saving “{t}” on this device…", noStore: "Couldn't save it; it will open just this once.",
@@ -570,20 +576,24 @@ const played = readJSON(PLAYED_KEY);
 function markPlayed(key) { played[key] = Date.now(); writeJSON(PLAYED_KEY, played); }
 
 // ================= Juegos guardados en el navegador (IndexedDB) =================
-const DB_NAME = "ps1web", STORE = "games";
+const DB_NAME = "ps1web", STORE = "games", STATES = "states";
 function openDB() {
   return new Promise((res, rej) => {
-    const r = indexedDB.open(DB_NAME, 1);
-    r.onupgradeneeded = () => r.result.createObjectStore(STORE, { keyPath: "id" });
+    const r = indexedDB.open(DB_NAME, 2);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: "id" });
+      if (!db.objectStoreNames.contains(STATES)) db.createObjectStore(STATES);
+    };
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
 }
-async function dbDo(mode, fn) {
+async function dbDo(mode, fn, store = STORE) {
   const db = await openDB();
   return new Promise((res, rej) => {
-    const tx = db.transaction(STORE, mode);
-    const req = fn(tx.objectStore(STORE));
+    const tx = db.transaction(store, mode);
+    const req = fn(tx.objectStore(store));
     tx.oncomplete = () => res(req && req.result);
     tx.onerror = tx.onabort = () => rej(tx.error);
   });
@@ -857,8 +867,25 @@ addEventListener("gamepaddisconnected", () => updatePad(true));
 
 // Prueba en vivo: ilumina en el dibujo los botones que se pulsan
 const padGroups = $$("#padSvg [data-btn]");
+// La PS1 original no tenía palancas: muchos juegos solo leen la cruceta.
+// Con el ajuste activo, el stick izquierdo pulsa la cruceta (índices 4-7 del RetroPad).
+const dpadHeld = { 4: false, 5: false, 6: false, 7: false };
+function stickToDpad() {
+  const emu = window.EJS_emulator;
+  if (!settings.stickDpad || !emu || !emu.started || !emu.gameManager) return;
+  const p = getPad();
+  const x = p ? p.axes[0] || 0 : 0, y = p ? p.axes[1] || 0 : 0;
+  const want = { 4: y < -0.5, 5: y > 0.5, 6: x < -0.5, 7: x > 0.5 };
+  for (const i in want) {
+    if (want[i] === dpadHeld[i]) continue;
+    dpadHeld[i] = want[i];
+    emu.gameManager.simulateInput(0, +i, want[i] ? 1 : 0);
+  }
+}
+
 function padLoop() {
-  if (!document.body.classList.contains("playing")) {
+  if (document.body.classList.contains("playing")) stickToDpad();
+  else {
     const p = getPad();
     for (const g of padGroups) {
       const i = +g.dataset.btn;
@@ -938,6 +965,44 @@ function renderSocial() {
   stars.onmouseleave = () => [...stars.children].forEach(s => s.classList.remove("on"));
 }
 
+// ================= Partidas =================
+// La memory card (/data/saves/…/juego.srm) solo pasa a IndexedDB cada 5 min por defecto:
+// aquí se fuerza cada 10 s y al salir. Los guardados rápidos ("1-quick.state"…) se quedan
+// solo en memoria, así que se copian a IndexedDB y se restauran al abrir el juego.
+let flushSaves = () => {};
+async function setupSaves(title) {
+  const emu = window.EJS_emulator, gm = emu && emu.gameManager;
+  if (!gm || gm.ps1webSaves) return;
+  gm.ps1webSaves = true;
+  flushSaves = () => { try { if (emu.started) gm.saveSaveFiles(); } catch {} };
+  setInterval(flushSaves, 10000);
+  addEventListener("visibilitychange", () => { if (document.hidden) flushSaves(); });
+  addEventListener("pagehide", flushSaves);
+
+  const prefix = title + "|";
+  try {
+    const keys = await dbDo("readonly", s => s.getAllKeys(), STATES);
+    for (const k of keys.filter(k => k.startsWith(prefix))) {
+      const data = await dbDo("readonly", s => s.get(k), STATES);
+      if (data) gm.FS.writeFile("/" + k.slice(prefix.length) + "-quick.state", data);
+    }
+  } catch {}
+  const quickSave = gm.quickSave.bind(gm);
+  gm.quickSave = slot => {
+    const ok = quickSave(slot);
+    if (ok) {
+      const n = slot || 1;
+      try { dbDo("readwrite", s => s.put(gm.FS.readFile("/" + n + "-quick.state"), prefix + n), STATES).catch(() => {}); } catch {}
+    }
+    return ok;
+  };
+}
+$("backBtn").addEventListener("click", e => {
+  e.preventDefault();
+  flushSaves();
+  setTimeout(() => { location.href = "./"; }, 400);  // da tiempo a que IndexedDB termine de escribir
+});
+
 // ================= Emulador =================
 function startGame({ title, gameUrl, biosUrl, extras, playedKey }) {
   if (playedKey) markPlayed(playedKey);
@@ -955,12 +1020,13 @@ function startGame({ title, gameUrl, biosUrl, extras, playedKey }) {
   // filtro de imagen: shaders que trae EmulatorJS
   window.EJS_defaultOptions = { shader: { sharp: "disabled", smooth: "bicubic", crt: "crt-easymode.glslp" }[settings.filter] || "bicubic" };
   window.EJS_fullscreenOnLoaded = !!settings.fullscreen;
-  window.EJS_onGameStart = () => updatePad(false);
+  window.EJS_onGameStart = () => { updatePad(false); setupSaves(title); };
   window.EJS_pathtodata = "https://cdn.emulatorjs.org/4.2.3/data/";
   window.EJS_language = LANG === "es" ? "es-ES" : "en-US";
   window.EJS_color = "#6c8cff";
   window.EJS_backgroundColor = "#000";
   window.EJS_startOnLoaded = true;
+  requestAnimationFrame(padLoop);
   const s = document.createElement("script");
   s.src = EJS_pathtodata + "loader.js";
   document.body.appendChild(s);
