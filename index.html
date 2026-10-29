@@ -229,6 +229,8 @@
     padding-top: max(10px, env(safe-area-inset-top)); background: #0b0c10; border-bottom: 1px solid var(--line); }
   .pbar h1 { font-size: 15px; margin: 0; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   #game { flex: 1; min-height: 0; }
+  .pbar .btn.pb { padding: 7px 12px; font-size: 14px; border-radius: 10px; }
+  @media (max-width: 640px) { .pbar .btn.pb span, .pbar .padchip { display: none; } .pbar h1 { font-size: 13px; } }
 
   /* ---------- avisos ---------- */
   #toast { position: fixed; left: 50%; bottom: max(24px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0;
@@ -392,6 +394,10 @@
   <div class="pbar">
     <a class="btn ghost" href="./" id="backBtn" style="padding:8px 12px">← <span data-t="back">Biblioteca</span></a>
     <h1 id="ptitle"></h1>
+    <button class="btn pb" id="saveBtn" data-t-title="saveTip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span data-t="saveBtn">Guardar</span></button>
+    <button class="btn pb" id="loadBtn" data-t-title="loadTip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span data-t="loadBtn">Cargar</span></button>
+    <label class="icon-btn" for="importSave" data-t-title="importTip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M12 11v6M9 14l3 3 3-3"/></svg></label>
+    <input type="file" id="importSave">
     <span class="chip padchip"><span class="dot"></span><span class="txt"></span></span>
     <button class="icon-btn" id="fsBtn" data-t-title="fullscreen" aria-label="Pantalla completa">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
@@ -467,7 +473,7 @@ const I18N = {
     faq: [
       ["¿Qué archivos sirven?", "Recomendado <code>.chd</code> (un solo archivo, ocupa menos). También <code>.bin</code> solo, <code>.cue</code> + <code>.bin</code> (elígelos juntos), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> y <code>.7z</code>."],
       ["¿Dónde se guardan mis juegos y partidas?", "En el navegador de cada dispositivo (IndexedDB). Nada se sube a internet. La memory card se guarda sola cada pocos segundos y al salir del juego. Si borras los datos del sitio, se borran también. En iPad / iPhone, agrégalo a la pantalla de inicio para protegerlos."],
-      ["¿Cómo guardo la partida?", "Con la memory card del propio juego, como en la consola. También con guardado rápido: en el menú del emulador (toca la pantalla o mueve el ratón abajo) o con las teclas <code>1</code> (guardar) y <code>2</code> (cargar). Los guardados rápidos se conservan aunque cierres la página."],
+      ["¿Cómo guardo la partida?", "Con la memory card del propio juego, como en la consola. O, en cualquier momento, con los botones <b>Guardar</b> y <b>Cargar</b> de la barra de arriba (o las teclas <code>1</code> y <code>2</code>). Se guardan en este dispositivo y se conservan aunque cierres la página. Con el botón de carpeta puedes abrir un archivo de guardado <code>.state</code> o <code>.srm</code> que tengas descargado."],
       ["La palanca analógica no mueve al personaje", "La PS1 original no tenía palancas, así que muchos juegos solo usan la cruceta. Por eso la palanca izquierda funciona como cruceta (puedes desactivarlo en Ajustes). En juegos con soporte DualShock, activa el modo analógico con <code>LB + RB + Vista</code>."],
       ["En el iPad se cierra al cargar el juego", "Los iPad antiguos tienen poca memoria. Convierte el juego a <code>.chd</code> (ocupa la mitad) con <code>chdman createcd -i juego.cue -o juego.chd</code>."],
       ["No detecta mi mando", "Pulsa cualquier botón con la página abierta: los navegadores no muestran el mando hasta entonces. Un mando Xbox solo recuerda un dispositivo Bluetooth; vuelve a emparejarlo al cambiar de aparato."],
@@ -478,6 +484,12 @@ const I18N = {
     feedbackTitle: "Sugerencia: ",
     legal: "PS1 Web no incluye juegos ni BIOS. Usa solo copias de juegos que tengas. PlayStation es una marca de Sony Interactive Entertainment; este proyecto no está afiliado a Sony.",
     back: "Biblioteca",
+    saveBtn: "Guardar", loadBtn: "Cargar", saveTip: "Guardar partida aquí (tecla 1)", loadTip: "Volver al último guardado (tecla 2)",
+    importTip: "Abrir un archivo de guardado (.state o .srm)",
+    saved: "💾 Partida guardada en este dispositivo", loaded: "Partida cargada", noSave: "Todavía no has guardado en este juego",
+    saveFail: "No se pudo guardar ahora; inténtalo en unos segundos", notReady: "Espera a que el juego termine de cargar",
+    stateImported: "Partida cargada desde el archivo", cardImported: "Memory card importada: carga la partida desde el menú del juego",
+    badSaveFile: "Ese archivo no es un guardado (.state o .srm)",
     setLang: "Idioma", setLangSub: "De la página y del emulador", setTouch: "Botones táctiles", setTouchSub: "En iPad y móvil",
     touchAuto: "Auto", touchOn: "Siempre", touchOff: "Nunca", setFs: "Pantalla completa al jugar", setFsSub: "Al abrir un juego", setStick: "Stick izquierdo como cruceta", setStickSub: "Para mover con la palanca en cualquier juego",
     setFilter: "Imagen", setFilterSub: "Cómo se ven los gráficos", fSharp: "Nítida", fSmooth: "Suave", fCrt: "TV antigua", setNote: "Se guardan en este dispositivo.", done: "Listo",
@@ -512,7 +524,7 @@ const I18N = {
     faq: [
       ["Which files work?", "Best is <code>.chd</code> (single file, smaller). Also a lone <code>.bin</code>, <code>.cue</code> + <code>.bin</code> (pick them together), <code>.pbp</code>, <code>.iso</code>, <code>.zip</code> and <code>.7z</code>."],
       ["Where are my games and saves stored?", "In the browser on each device (IndexedDB). Nothing is uploaded. The memory card is saved every few seconds and when you leave the game. Clearing this site's data deletes them. On iPad / iPhone, add it to your Home Screen to protect them."],
-      ["How do I save?", "With the game's own memory card, like on the console. Or use quick saves from the emulator menu (tap the screen or move the mouse to the bottom) or the <code>1</code> (save) and <code>2</code> (load) keys. Quick saves are kept even after closing the page."],
+      ["How do I save?", "With the game's own memory card, like on the console. Or save anywhere with the <b>Save</b> and <b>Load</b> buttons in the top bar (or the <code>1</code> and <code>2</code> keys). Saves stay on this device even after closing the page. The folder button opens a <code>.state</code> or <code>.srm</code> save file you downloaded."],
       ["The analog stick doesn't move my character", "The original PS1 pad had no sticks, so many games only read the D-pad. That's why the left stick works as a D-pad (you can turn it off in Settings). In DualShock games, turn on analog mode with <code>LB + RB + View</code>."],
       ["My iPad closes the page when loading a game", "Older iPads have little memory. Convert the game to <code>.chd</code> (about half the size) with <code>chdman createcd -i game.cue -o game.chd</code>."],
       ["My controller isn't detected", "Press any button with the page open — browsers hide controllers until then. An Xbox controller remembers only one Bluetooth device; re-pair it when switching."],
@@ -523,6 +535,12 @@ const I18N = {
     feedbackTitle: "Idea: ",
     legal: "PS1 Web does not include games or BIOS files. Only play games you own. PlayStation is a trademark of Sony Interactive Entertainment; this project is not affiliated with Sony.",
     back: "Library",
+    saveBtn: "Save", loadBtn: "Load", saveTip: "Save your game here (key 1)", loadTip: "Go back to your last save (key 2)",
+    importTip: "Open a save file (.state or .srm)",
+    saved: "💾 Game saved on this device", loaded: "Game loaded", noSave: "You haven't saved this game yet",
+    saveFail: "Couldn't save right now; try again in a few seconds", notReady: "Wait for the game to finish loading",
+    stateImported: "Game loaded from the file", cardImported: "Memory card imported: load your game from the game's menu",
+    badSaveFile: "That isn't a save file (.state or .srm)",
     setLang: "Language", setLangSub: "For the page and the emulator", setTouch: "Touch buttons", setTouchSub: "On iPad and phones",
     touchAuto: "Auto", touchOn: "Always", touchOff: "Never", setFs: "Fullscreen when playing", setFsSub: "When a game opens", setStick: "Left stick as D-pad", setStickSub: "Move with the stick in any game",
     setFilter: "Image", setFilterSub: "How the graphics look", fSharp: "Sharp", fSmooth: "Smooth", fCrt: "Retro TV", setNote: "Saved on this device.", done: "Done",
@@ -997,6 +1015,51 @@ async function setupSaves(title) {
     return ok;
   };
 }
+// Botones Guardar / Cargar: usan la ranura de guardado rápido (la misma que las teclas 1 y 2),
+// que setupSaves conserva en IndexedDB.
+function gameReady() {
+  const emu = window.EJS_emulator;
+  return emu && emu.started && emu.gameManager ? emu : null;
+}
+const slotNow = emu => String((emu.getSettingValue && emu.getSettingValue("save-state-slot")) || "1");
+$("saveBtn").onclick = () => {
+  const emu = gameReady();
+  if (!emu) return toast(t("notReady"));
+  toast(emu.gameManager.quickSave(slotNow(emu)) ? t("saved") : t("saveFail"));
+};
+$("loadBtn").onclick = () => {
+  const emu = gameReady();
+  if (!emu) return toast(t("notReady"));
+  const n = slotNow(emu);
+  if (!emu.gameManager.FS.analyzePath("/" + n + "-quick.state").exists) return toast(t("noSave"));
+  emu.gameManager.quickLoad(n);
+  toast(t("loaded"));
+};
+// Abrir un guardado descargado: .state (partida en un punto exacto) o .srm (memory card)
+$("importSave").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  const emu = gameReady();
+  if (!file) return;
+  if (!emu) return toast(t("notReady"));
+  const gm = emu.gameManager, data = new Uint8Array(await file.arrayBuffer()), ext = extOf(file.name);
+  if (ext === "state") {
+    gm.loadState(data);
+    return toast(t("stateImported"));
+  }
+  if (ext === "srm" || ext === "mcr" || ext === "sav") {
+    const path = gm.getSaveFilePath();
+    let dir = "";
+    for (const part of path.split("/").slice(1, -1)) { dir += "/" + part; if (!gm.FS.analyzePath(dir).exists) gm.FS.mkdir(dir); }
+    if (gm.FS.analyzePath(path).exists) gm.FS.unlink(path);
+    gm.FS.writeFile(path, data);
+    gm.loadSaveFiles();
+    flushSaves();
+    return toast(t("cardImported"));
+  }
+  toast(t("badSaveFile"));
+});
+
 $("backBtn").addEventListener("click", e => {
   e.preventDefault();
   flushSaves();
@@ -1017,6 +1080,8 @@ function startGame({ title, gameUrl, biosUrl, extras, playedKey }) {
   if (biosUrl) window.EJS_biosUrl = biosUrl;
   if (extras && Object.keys(extras).length) window.EJS_externalFiles = extras;
   window.EJS_defaultControls = CONTROLS;
+  // los botones de estado del menú descargan archivos y confunden: los sustituyen Guardar / Cargar
+  window.EJS_Buttons = { saveState: false, loadState: false };
   // filtro de imagen: shaders que trae EmulatorJS
   window.EJS_defaultOptions = { shader: { sharp: "disabled", smooth: "bicubic", crt: "crt-easymode.glslp" }[settings.filter] || "bicubic" };
   window.EJS_fullscreenOnLoaded = !!settings.fullscreen;

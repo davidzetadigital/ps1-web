@@ -25,7 +25,7 @@
 - **Touch controls on iPad and phones**, which hide automatically when a controller connects.
 - **Simple settings.** Language, touch buttons, fullscreen on start and image style (sharp, smooth or retro CRT TV).
 - **English and Spanish**, picked automatically from your device.
-- **Saves that stick.** Memory card saves are written every few seconds, and quick save states survive closing the page.
+- **Save and Load buttons, always in reach.** One tap to save anywhere and one to go back — saves survive closing the page, and memory card saves are written every few seconds.
 - **Left stick works everywhere.** It doubles as a D-pad, so even digital-only PS1 games respond to it.
 - **Install it like an app.** Add to Home Screen on iPad/iPhone for a full-screen experience.
 - **Optional home library.** Run one tiny Python script and every game in a folder on your computer shows up on every device in your house.
@@ -82,7 +82,7 @@ Requires only Python 3 — no packages to install.
 | L2 / R2 | LT / RT | W / R |
 | Start / Select | Menu ≡ / View ⧉ | Enter / Shift |
 | Analog mode on/off | LB + RB + View | Q + E + Shift |
-| Quick save / load | Emulator menu | 1 / 2 |
+| Save / Load anywhere | Save / Load buttons | 1 / 2 |
 | Fast forward | — | Space |
 
 **Connecting a controller via Bluetooth:** turn it on, hold the small pair button until the logo flashes fast, pair it in your device's Bluetooth settings, then press any button with the page open (browsers only detect a controller after a button press).
@@ -108,7 +108,7 @@ chdman createcd -i "My Game.cue" -o "My Game.chd"
 <details>
 <summary><b>Where are my saves?</b></summary>
 
-In your browser's storage (IndexedDB) on each device — nothing is uploaded. Memory card saves are written every few seconds and when you leave a game, and quick saves (keys `1` / `2` or the emulator menu) are kept even after closing the page. Clearing website data for this page deletes them. On iPad/iPhone, adding the page to the Home Screen protects them from automatic cleanup.
+In your browser's storage (IndexedDB) on each device — nothing is uploaded. Memory card saves are written every few seconds and when you leave a game. You can also save anywhere with the **Save** and **Load** buttons in the top bar (or keys `1` / `2`) — those saves are kept even after closing the page. The folder button opens a `.state` or `.srm` save file you downloaded. Clearing website data for this page deletes them. On iPad/iPhone, adding the page to the Home Screen protects them from automatic cleanup.
 </details>
 
 <details>
